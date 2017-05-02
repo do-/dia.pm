@@ -11,7 +11,6 @@ sub fill_in {
    	fill_in_things (core_modules =>
    		
 		mail                 => 1,
-		math_fixed_precision => 1,
 		memory               => 1,
 		queries              => 1,
 		uri_escape           => 1,

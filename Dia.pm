@@ -257,29 +257,6 @@ sub finish_loading_logging {
 
 ################################################################################
 
-sub check_module_math_fixed_precision {
-
-	loading_log " check_module_math_fixed_precision... ";
-
-	eval { 
-		require Math::FixedPrecision;
-	};
-	
-	if ($@) {
-
-		loading_log "no Math::FixedPrecision, ok. [INSTALL SUGGESTED]\n";
-
-	}
-	else {
-	
-		loading_log "Math::FixedPrecision $Math::FixedPrecision::VERSION ok.\n";
-
-	}
-
-}
-
-################################################################################
-
 sub check_module_zlib {
 
 	loading_log " check_module_zlib................... ";

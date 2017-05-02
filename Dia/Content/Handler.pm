@@ -130,7 +130,7 @@ sub out_json ($) {
 
 sub setup_json {
 
-	our $_JSON ||= JSON -> new -> allow_nonref (1) -> allow_blessed (1);
+	our $_JSON ||= JSON -> new -> allow_nonref (1) -> allow_blessed (1) -> allow_bignum (1);
 
 }
 
