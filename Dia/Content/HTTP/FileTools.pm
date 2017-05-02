@@ -36,7 +36,7 @@ sub download_file_header {
 
 	my ($options) = @_;	
 
-	$r -> status (200);
+	$_HEADERS -> header (Status => 200);
 
 	$options -> {file_name} =~ s{.*\\}{};
 		
@@ -58,31 +58,29 @@ sub download_file_header {
 	
 	}
 		
-	my $range_header = $r -> headers_in -> {"Range"};
+	my $range_header = $r -> {Q} -> http ('Range');
 
 	if ($range_header =~ /bytes=(\d+)/) {
 		$start = $1;
 		my $finish = $content_length - 1;
-		$r -> headers_out -> {'Content-Range'} = "bytes $start-$finish/$content_length";
+		$_HEADERS -> header ('Content-Range' => "bytes $start-$finish/$content_length");
 		$content_length -= $start;
 	}
 
-	$r -> content_type ($type);
+	$_HEADERS -> header ('Content-Type' => $type);
 	
 	if ($options -> {file_name} && !$options -> {no_force_download}) {
 		$options -> {file_name} =~ s/\?/_/g unless ($ENV {HTTP_USER_AGENT} =~ /MSIE 7/);
-		$r -> headers_out -> {'Content-Disposition'} = "attachment;filename=" . uri_escape ($options -> {file_name});
+		$_HEADERS -> header ('Content-Disposition' => "attachment;filename=" . uri_escape ($options -> {file_name}));
 	}
 
 	if ($content_length > 0) {
-		$r -> headers_out -> {'Content-Length'} = $content_length;
-		$r -> headers_out -> {'Accept-Ranges'} = 'bytes';
+		$_HEADERS -> header ('Content-Length' => $content_length);
+		$_HEADERS -> header ('Accept-Ranges'  => 'bytes');
 	} 
 	
-	delete $r -> headers_out -> {'Content-Encoding'};
+	$_HEADERS -> remove_header ('Content-Encoding');
 	
-	$r -> headers_out -> {'P3P'} = 'CP="IDC DSP COR ADM DEVi TAIi PSA PSD IVAi IVDi CONi HIS OUR IND CNT"';
-
 	send_http_header ();
 
 	$_REQUEST {__response_sent} = 1;
@@ -103,9 +101,12 @@ sub download_file {
 
 	my $start = download_file_header (@_);
 	
+	my $buf;
+
 	open (F, $path) or die ("Can't open file $path: $!");
+	binmode F;
 	seek (F, $start, 0);
-	$r -> send_fd (F);
+	while (read (F, $buf, 8192)) { print $buf }
 	close F;
 	
 }

@@ -1,5 +1,55 @@
 no warnings;
 
+CGI::Simple::_initialize_globals ();
+	
+$CGI::Simple::USE_PARAM_SEMICOLONS = 0;
+$CGI::Simple::DISABLE_UPLOADS = 1;
+$CGI::Simple::POST_MAX = -1;
+
+################################################################################
+
+sub set_cookie {
+
+	my $cookie = CGI::Simple::Cookie -> new (@_);
+	
+	unless ($cookie) {
+	
+		warn "WARNING: no cookie set for " . Data::Dumper::Dumper (\@_);
+		
+		return;
+	
+	}
+
+	$_HEADERS -> push_header ('Set-Cookie' => $cookie -> as_string);
+
+}
+
+#################################################################################
+
+sub get_request {
+
+	our $_HEADERS = HTTP::Headers -> new;
+	
+	our $r = {Q => CGI::Simple -> new};
+	
+	our %_COOKIES = CGI::Simple::Cookie -> parse ($r -> {Q} -> http ('Cookie'));
+
+	$r -> {Q} -> parse_query_string ();
+
+	our %_REQUEST = $r -> {Q} -> Vars;
+
+}
+
+################################################################################
+
+sub send_http_header {
+	
+	print $_HEADERS -> as_string;
+		
+	print "\015\012";
+	
+}
+
 #################################################################################
 
 sub get_request_problem {
@@ -8,7 +58,7 @@ sub get_request_problem {
 
 	$ENV {REQUEST_METHOD} eq 'POST' or return 405;
 	
-	my $enctype = $r -> header_in ('Content-Type');
+	my $enctype = $r -> {Q} -> http ('Content-Type');
 	
 	$enctype eq 'application/json' or $enctype eq 'text/plain' or return (400 => 'Wrong Content-Type');
 
@@ -19,23 +69,23 @@ sub get_request_problem {
 	if (my $postdata = delete $_REQUEST {POSTDATA}) {
 	
 		eval {%_REQUEST = (%_REQUEST, %{$_JSON -> decode ($postdata)})};
-		
+
 		$@ and return (400 => 'Wrong JSON');
 		
 	}
 
-	while (my ($k, $v) = each %{$r -> {headers_in}}) {
+	foreach my $k ($r -> {Q} -> http) {
 	
-		$k =~ /X-Request-Param-/ or next;
+		$k =~ /HTTP_X_REQUEST_PARAM_/ or next;
 		
-		my $s = uri_unescape ($v);
+		my $s = uri_unescape ($r -> {Q} -> http ($k));
 		
 		Encode::_utf8_on ($s);
 		
 		$_REQUEST {data} -> {lc $'} = $s;
 	
 	}
-
+	
 	undef;
 
 }
@@ -48,9 +98,11 @@ sub is_request_ok {
 	
 	$code or return 1;
 
-	$r -> status ($code);
+	$_HEADERS -> header (Status => $code);
+
 	send_http_header ();
-	$r -> print ($message);	
+
+	print ($message);	
 	
 	warn "Request problem $code $message\n";
 	
@@ -71,14 +123,12 @@ sub out_html {
 	$html = Encode::encode ('utf-8', $html);
 
 	return print $html if $_REQUEST {__response_started};
-
-	$r -> content_type ($_REQUEST {__content_type}) if $_REQUEST {__content_type};
 	
-	$r -> headers_out -> {'Content-Length'} = my $length = length $html;
-		
+	$_HEADERS -> header ('Content-Length' => (my $length = length $html));
+
 	send_http_header ();
 
-	$r -> header_only or print $html;
+	print $html;
 	
 	$_REQUEST {__response_sent} = 1;
 
@@ -89,10 +139,10 @@ sub out_html {
 ################################################################################
 
 sub out_json ($) {
-
-	$_REQUEST {__content_type} = 'application/json';
 	
 	my ($page) = @_;
+
+	$_HEADERS -> header ('Content-Type' => 'application/json');
 
 	eval {out_html ({}, $_JSON -> encode ($page))};
 
@@ -107,9 +157,7 @@ sub out_json ($) {
 	my @c = (); while (my ($k, $v) = each %content) {$c [CODE eq ref $v] -> {$k} = $v}
 
 	my $json_content = $_JSON -> encode ($c [0]); chop $json_content;
-
-	$r -> content_type ($_REQUEST {__content_type});
-			
+				
 	send_http_header ();
 
 	print $json_page;

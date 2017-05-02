@@ -9,14 +9,15 @@ use Digest::MD5;
 use Encode;
 use Fcntl qw(:DEFAULT :flock);
 use File::Copy 'move';
-use HTML::Entities;
-use HTTP::Date;
+use HTTP::Headers;
 use MIME::Base64;
 use Number::Format;
 use Time::HiRes 'time';
 use Scalar::Util;
 use Storable;
 use JSON;
+use CGI::Simple;
+use CGI::Simple::Cookie;
 
 ################################################################################
 
@@ -183,64 +184,6 @@ EOT
 
 ################################################################################
 
-sub check_web_server_apache {
-
-	return if $preconf -> {use_cgi};
-	
-	my $module = 'Apache';
-
-	$module .= 2 if $ENV {MOD_PERL_API_VERSION} >= 2;
-		
-	$module .= '::Request';
-
-	loading_log "\n  mod_perl detected, checking for $module... ";
-
-	my $version = 
-		$ENV {MOD_PERL_API_VERSION} >= 2                 ? 2   :
-		$ENV {MOD_PERL}              =~ m{mod_perl/1.99} ? 199 :
-	                                                           1
-	;
-
-	eval "require Dia::Content::HTTP::API::ModPerl$version";
-
-	if ($@) {
-
-		$preconf -> {use_cgi} = 1;		
-		loading_log "not found; falling back to CGI :-(\n";		
-		return;
-
-	}
-
-}
-
-################################################################################
-
-sub check_web_server {
-
-	loading_log " check_web_server... ";
-	
-	$ENV {MOD_PERL} or $ENV {MOD_PERL_API_VERSION} or $preconf -> {use_cgi} ||= 1;
-
-	check_web_server_apache ();
-
-	if ($preconf -> {use_cgi}) {
-	
-		eval "require Dia::Content::HTTP::API::CGISimple";
-		
-		if ($@) {
-
-			loading_log " CGI::Simple is not installed... ";
-
-			eval "require Dia::Content::HTTP::API::CGI";
-
-		}		
-		
-	}
-		
-}
-
-################################################################################
-
 sub start_loading_logging {
 
 	loading_log "\nLoading {\n" . (join ",\n", map {"\t$_"} @$PACKAGE_ROOT) . "\n} => " . __PACKAGE__ . "...\n";
@@ -353,8 +296,6 @@ BEGIN {
 
 	start_loading_logging       ();
 
-	check_web_server            (); 
-	
 	require "Dia/$_.pm" foreach qw (Content SQL GenericApplication/Config);
 
 	require_config              ();
