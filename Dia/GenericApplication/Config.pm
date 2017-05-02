@@ -14,7 +14,6 @@ sub fill_in {
 		memory               => 1,
 		queries              => 1,
 		uri_escape           => 1,
-		zlib                 => 1,
    	
 	);
 

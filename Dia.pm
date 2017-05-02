@@ -257,37 +257,6 @@ sub finish_loading_logging {
 
 ################################################################################
 
-sub check_module_zlib {
-
-	loading_log " check_module_zlib................... ";
-
-	if (!$preconf -> {core_gzip}) {
-
-		loading_log "DISABLED, ok\n";
-
-		return;
-		
-	}
-
-	eval 'require Compress::Raw::Zlib';
-
-	if ($@) {
-	
-		print "no Compress::Raw::Zlib, ok. [INSTALL SUGGESTED]\n";
-		
-		delete $preconf -> {core_gzip};
-		
-	}
-	else {
-	
-		loading_log "Compress::Raw::Zlib $Compress::Raw::Zlib::VERSION ok.\n";
-
-	}
-
-}
-
-################################################################################
-
 sub check_module_uri_escape {
 	
 	loading_log " check_module_uri_escape............. ";
