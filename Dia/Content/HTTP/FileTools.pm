@@ -103,14 +103,10 @@ sub download_file {
 
 	my $start = download_file_header (@_);
 	
-	if (MP2) {
-		$r -> sendfile ($path, $start);
-	} else {
-		open (F, $path) or die ("Can't open file $path: $!");
-		seek (F, $start, 0);
-		$r -> send_fd (F);
-		close F;
-	}
+	open (F, $path) or die ("Can't open file $path: $!");
+	seek (F, $start, 0);
+	$r -> send_fd (F);
+	close F;
 	
 }
 

@@ -78,7 +78,7 @@ sub out_html {
 		
 	send_http_header ();
 
-	$r -> header_only && !MP2 or print $html;
+	$r -> header_only or print $html;
 	
 	$_REQUEST {__response_sent} = 1;
 
