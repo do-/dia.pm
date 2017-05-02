@@ -16,6 +16,7 @@ use Number::Format;
 use Time::HiRes 'time';
 use Scalar::Util;
 use Storable;
+use JSON;
 
 ################################################################################
 
@@ -331,39 +332,6 @@ sub check_module_uri_escape {
 
 	}
 	
-}
-
-################################################################################
-
-sub check_module_json {
-	
-	loading_log " check_module_json................... ";
-	
-	unless ($ENV {PERL_JSON_BACKEND}) {
-	
-		eval "require JSON::XS";
-		
-		if ($@) {
-			
-			loading_log "JSON::XS in not installed :-( ";
-			
-			$ENV {PERL_JSON_BACKEND} = 'JSON::PP';
-			
-		}
-		else {
-
-			$ENV {PERL_JSON_BACKEND} = 'JSON::XS';
-
-		}
-	
-	}
-	
-	eval "require Dia::Presentation::$ENV{PERL_JSON_BACKEND}";
-	
-	die $@ if $@;
-			
-	loading_log qq{$ENV{PERL_JSON_BACKEND} ${"$ENV{PERL_JSON_BACKEND}::VERSION"} ok.\n};
-
 }
 
 ################################################################################
