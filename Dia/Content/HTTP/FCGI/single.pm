@@ -5,8 +5,8 @@ use IO::File;
 
 sub start {
 		
-	require Eludia::Loader;
-	Eludia::Loader -> import ();
+	require Dia::Loader;
+	Dia::Loader -> import ();
 	
 	my $f = $APP::preconf -> {fcgi};
 	

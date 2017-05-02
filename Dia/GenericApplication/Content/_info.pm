@@ -91,9 +91,9 @@ sub select__info {
 		
 		{			
 			id    => 'Engine',
-			label => "Eludia",
+			label => "Dia",
 			path  => $preconf -> {core_path},
-			version => $Eludia::VERSION,
+			version => $Dia::VERSION,
 		},
 
 		{
@@ -131,7 +131,7 @@ sub select__info {
 	
 		}
 		
-		$i -> {product} =~ s{^Eludia::Presentation::Skins::}{};
+		$i -> {product} =~ s{^Dia::Presentation::Skins::}{};
 						
 	}
 

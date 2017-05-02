@@ -32,7 +32,7 @@ sub lock_file_name () {
 
 sub initialize_offline_script_execution () {
 
-	$ENV {ELUDIA_SILENT} or warn "\n" . offline_script_log_signature . " starting...\n";
+	$ENV {DIA_SILENT} or warn "\n" . offline_script_log_signature . " starting...\n";
 
 	eval 'require LockFile::Simple';
 	
@@ -70,7 +70,7 @@ sub finalize_offline_script_execution () {
 	
 	}
 
-	$ENV {ELUDIA_SILENT} or warn offline_script_log_signature . " finished.\n";
+	$ENV {DIA_SILENT} or warn offline_script_log_signature . " finished.\n";
 
 }
 
@@ -82,8 +82,8 @@ BEGIN {
 	
 	initialize_offline_script_execution;
 	
-	require Eludia::Loader;	
-	Eludia::Loader -> import ();
+	require Dia::Loader;	
+	Dia::Loader -> import ();
 	
 	package APP;
 		

@@ -1,4 +1,4 @@
-package Eludia::Loader;
+package Dia::Loader;
 use Cwd;
 
 ################################################################################
@@ -7,7 +7,7 @@ sub import {
 
 	package APP;
 
-	do 'Eludia/Conf.pm';
+	do 'Dia/Conf.pm';
 
 	my $generic_path = __FILE__; $generic_path =~ s{Loader.pm}{GenericApplication};
 	
@@ -15,7 +15,7 @@ sub import {
 			
 	unshift (@INC, $PACKAGE_ROOT -> [0]);
 
-	require Eludia;
+	require Dia;
 
 }
 

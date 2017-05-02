@@ -16,7 +16,7 @@ sub o ($) {
 
 sub options_unix {
 
-	do 'Eludia/Conf.pm';
+	do 'Dia/Conf.pm';
 
 	my %options = %{$preconf -> {fcgi}};
 
@@ -124,7 +124,7 @@ $SIG {CHLD} = \&REAPER;
 
 sub start {
 	
-	require Eludia::Loader;
+	require Dia::Loader;
 
 	my %options = options_unix ();	
 	
@@ -132,7 +132,7 @@ sub start {
 	
 	$options {pid_to_stop} = pid_unix (%options);
 
-	Eludia::Loader -> import ();	
+	Dia::Loader -> import ();	
 	APP::sql_reconnect  ();
 	APP::require_model  ();		
 

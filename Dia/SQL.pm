@@ -1,6 +1,6 @@
 no warnings;
 
-use Eludia::SQL::TheSqlFunction;
+use Dia::SQL::TheSqlFunction;
 
 ################################################################################
 
@@ -488,7 +488,7 @@ sub sql_select_vocabulary {
 	
 	my @list;
 	
-	tie @list, 'Eludia::Tie::Vocabulary', {
+	tie @list, 'Dia::Tie::Vocabulary', {
 	
 		sql      => "SELECT id, $$options{label}, fake FROM $table_name WHERE $filter ORDER BY $$options{order} $limit",
 		
@@ -853,7 +853,7 @@ sub sql_select_ids {
 
 	my $ids;
 
-	my $tied = tie $ids, 'Eludia::Tie::IdsList', {
+	my $tied = tie $ids, 'Dia::Tie::IdsList', {
 	
 		sql 			=> $sql,
 		
@@ -1128,7 +1128,7 @@ sub require_wish ($) {
 
 	return if $INC_FRESH {"Wish::$_[0]"};
 	
-	foreach my $key (map {"Eludia/SQL$_/Wish/$_[0].pm"} ('', '/Dialect/' . $SQL_VERSION -> {driver})) {
+	foreach my $key (map {"Dia/SQL$_/Wish/$_[0].pm"} ('', '/Dialect/' . $SQL_VERSION -> {driver})) {
 	
 		eval {require $key};
 		

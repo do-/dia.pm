@@ -57,7 +57,7 @@ sub require_model {
 
 	if (!exists $DB_MODEL -> {tables}) {
 
-		tie %tables, Eludia::Tie::FileDumpHash, {conf => $conf, path => \&_INC, package => __PACKAGE__};
+		tie %tables, Dia::Tie::FileDumpHash, {conf => $conf, path => \&_INC, package => __PACKAGE__};
 
 		$DB_MODEL -> {tables} = \%tables;
 		

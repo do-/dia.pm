@@ -1104,7 +1104,7 @@ sub sql {
 
 				my $ids;
 				
-				my $tied = tie $ids, 'Eludia::Tie::IdsList', {
+				my $tied = tie $ids, 'Dia::Tie::IdsList', {
 
 					sql 			=> $sql,
 

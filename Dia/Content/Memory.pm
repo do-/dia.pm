@@ -2,13 +2,13 @@
 
 BEGIN {
 
-	require Eludia::Content::Memory::Dummy;
+	require Dia::Content::Memory::Dummy;
 
 	if ($^O eq 'MSWin32') {
 	
 		if (!$ENV {MOD_PERL}) {
 
-#			eval "require Eludia::Content::Memory::MSWin32OLE";
+#			eval "require Dia::Content::Memory::MSWin32OLE";
 
 		}	
 
@@ -19,12 +19,12 @@ BEGIN {
 
 		if ($INC {'Proc/ProcessTable.pm'}) {
 
-			eval "require Eludia::Content::Memory::ProcessTable";
+			eval "require Dia::Content::Memory::ProcessTable";
 
 		}
 		else {
 
-			eval "require Eludia::Content::Memory::PS";
+			eval "require Dia::Content::Memory::PS";
 
 		}
 

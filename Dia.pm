@@ -21,7 +21,7 @@ use Storable;
 
 sub loading_log (@) {
 
-	$ENV {ELUDIA_SILENT} or print STDERR @_;
+	$ENV {DIA_SILENT} or print STDERR @_;
 
 }
 
@@ -123,7 +123,7 @@ sub check_version {
 
 	my $dir = File::Spec -> rel2abs (__FILE__);
 		
-	$dir =~ s{Eludia.pm}{};
+	$dir =~ s{Dia.pm}{};
 	
 	$dir =~ y{\\}{/};
 	
@@ -131,19 +131,19 @@ sub check_version {
 
 	require Date::Calc;
 
-	return if $Eludia::VERSION ||= $ENV {ELUDIA_BANNER_PRINTED};
+	return if $Dia::VERSION ||= $ENV {DIA_BANNER_PRINTED};
 	
 	my ($year) = Date::Calc::Today ();
 	
-	eval {require Eludia::Version};
+	eval {require Dia::Version};
 	
-	$Eludia::VERSION ||= check_version_by_git ();
+	$Dia::VERSION ||= check_version_by_git ();
 	
-	$Eludia::VERSION ||= 'UNKNOWN (please write some Eludia::Version module)';
+	$Dia::VERSION ||= 'UNKNOWN (please write some Dia::Version module)';
 	
 	my $year;
 	
-	if ($Eludia::VERSION =~ /^(\d\d)\.\d\d.\d\d/) {
+	if ($Dia::VERSION =~ /^(\d\d)\.\d\d.\d\d/) {
 	
 		$year = '20' . $1;
 	
@@ -154,7 +154,7 @@ sub check_version {
 
 	}
 	
-	my $length = 23 + length $Eludia::VERSION;
+	my $length = 23 + length $Dia::VERSION;
 	
 	$length > 49 or $length = 49;
 	
@@ -164,19 +164,19 @@ sub check_version {
 
  $bar
 
- *****     *    Eludia.pm
+ *****     *    Dia.pm
      *    *
      *   *
- ********       Version $Eludia::VERSION
+ ********       Version $Dia::VERSION
      * *
      **
- *****          Copyright (c) 2002-$year by Eludia
+ *****          Copyright (c) 2002-$year by Dia
  
  $bar
 
 EOT
 
-	$ENV {ELUDIA_BANNER_PRINTED} = $Eludia::VERSION;
+	$ENV {DIA_BANNER_PRINTED} = $Dia::VERSION;
 
 }
 
@@ -200,7 +200,7 @@ sub check_web_server_apache {
 	                                                           1
 	;
 
-	eval "require Eludia::Content::HTTP::API::ModPerl$version";
+	eval "require Dia::Content::HTTP::API::ModPerl$version";
 
 	if ($@) {
 
@@ -224,13 +224,13 @@ sub check_web_server {
 
 	if ($preconf -> {use_cgi}) {
 	
-		eval "require Eludia::Content::HTTP::API::CGISimple";
+		eval "require Dia::Content::HTTP::API::CGISimple";
 		
 		if ($@) {
 
 			loading_log " CGI::Simple is not installed... ";
 
-			eval "require Eludia::Content::HTTP::API::CGI";
+			eval "require Dia::Content::HTTP::API::CGI";
 
 		}		
 		
@@ -358,7 +358,7 @@ sub check_module_json {
 	
 	}
 	
-	eval "require Eludia::Presentation::$ENV{PERL_JSON_BACKEND}";
+	eval "require Dia::Presentation::$ENV{PERL_JSON_BACKEND}";
 	
 	die $@ if $@;
 			
@@ -372,7 +372,7 @@ sub check_module_memory {
 
 	loading_log " check_module_memory................. ";
 
-	require Eludia::Content::Memory;
+	require Dia::Content::Memory;
 
 }
 
@@ -384,7 +384,7 @@ sub check_module_mail {
 
 	if ($preconf -> {mail}) { 
 		
-		require Eludia::Content::Mail;
+		require Dia::Content::Mail;
 
 		loading_log "$preconf->{mail}->{host}, ok.\n";
 		
@@ -407,7 +407,7 @@ sub check_module_queries {
 
 	if ($conf -> {core_store_table_order}) { 
 		
-		require Eludia::Content::Queries;
+		require Dia::Content::Queries;
 
 		loading_log "stored queries enabled, ok.\n";
 
@@ -430,7 +430,7 @@ sub darn ($) {warn Dumper ($_[0]); return $_[0]}
 
 BEGIN {
 
-	foreach (grep {/^Eludia/} keys %INC) { delete $INC {$_} }
+	foreach (grep {/^Dia/} keys %INC) { delete $INC {$_} }
 	
 	check_constants             ();
 	check_version               ();
@@ -441,7 +441,7 @@ BEGIN {
 
 	check_web_server            (); 
 	
-	require "Eludia/$_.pm" foreach qw (Content SQL GenericApplication/Config);
+	require "Dia/$_.pm" foreach qw (Content SQL GenericApplication/Config);
 
 	require_config              ();
 	
@@ -451,7 +451,7 @@ BEGIN {
 
 }
 
-package Eludia;
+package Dia;
 
 1;
 
@@ -461,7 +461,7 @@ __END__
 
 =head1 NAME
 
-Eludia - a non-OO MVC.
+Dia - a non-OO MVC.
 
 =head1 WARNING
 

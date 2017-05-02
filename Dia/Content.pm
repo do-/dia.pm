@@ -1,13 +1,13 @@
 no warnings;
 
-use Eludia::Content::Auth;
-use Eludia::Content::Dt;
-use Eludia::Content::ModuleTools;
-use Eludia::Content::Handler;
-use Eludia::Content::Validators;
-use Eludia::Content::Tie;
-use Eludia::Content::Profiling;
-use Eludia::Content::HTTP::FileTools;
+use Dia::Content::Auth;
+use Dia::Content::Dt;
+use Dia::Content::ModuleTools;
+use Dia::Content::Handler;
+use Dia::Content::Validators;
+use Dia::Content::Tie;
+use Dia::Content::Profiling;
+use Dia::Content::HTTP::FileTools;
 
 #############################################################################
 

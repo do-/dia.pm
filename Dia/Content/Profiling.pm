@@ -79,7 +79,7 @@ sub __profile_print_tree {
 
 sub __profile_in {
 
-	return if !$preconf -> {core_debug_profiling} || $ENV {ELUDIA_SILENT};
+	return if !$preconf -> {core_debug_profiling} || $ENV {DIA_SILENT};
 
 	my ($type, $options) = @_;
 
@@ -145,7 +145,7 @@ sub __profile_handle_event {
 
 sub __profile_out {
 
-	return if !$preconf -> {core_debug_profiling} || $ENV {ELUDIA_SILENT};
+	return if !$preconf -> {core_debug_profiling} || $ENV {DIA_SILENT};
 
 	my ($type, $new_options)     = @_;
 
