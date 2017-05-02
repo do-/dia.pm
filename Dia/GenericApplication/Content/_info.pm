@@ -82,13 +82,7 @@ sub select__info {
 			id    => 'DB driver',
 			label => 'DBD::' . $db -> {Driver} -> {Name} . ' ' . ${'DBD::' . $db -> {Driver} -> {Name} . '::VERSION'},
 		},
-		
-		{			
-			id    => 'Parameters module',
-			label => ref $apr,
-			version => ${(ref $apr) . '::VERSION'},
-		},
-		
+				
 		{			
 			id    => 'Engine',
 			label => "Dia",

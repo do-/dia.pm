@@ -5,9 +5,8 @@ sub get_request {
 	my @params = $connection ? ($connection, $request) : ();
 	
 	our $r        = new Dia::ApacheLikeRequest (@params);
-	our $apr      = $r;
 	our %_COOKIES = CGI::Cookie -> parse ($r -> {headers_in} -> {Cookie});
-	our %_REQUEST = %{$apr -> parms};
+	our %_REQUEST = %{$r -> parms};
 
 }
 
