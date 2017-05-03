@@ -7,7 +7,7 @@ sub import {
 
 	package APP;
 
-	do 'Dia/Conf.pm';
+	do 'Dia/Conf.pm'; die $@ if $@;
 
 	my $generic_path = __FILE__; $generic_path =~ s{Loader.pm}{GenericApplication};
 	
