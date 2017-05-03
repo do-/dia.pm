@@ -37,11 +37,11 @@ sub options_unix {
 sub pid_unix {
 
 	my %options = options_unix ();
+	
+	-f $options {pidfile} or return undef;
 
-	open (PIDFILE, "$options{pidfile}") or return undef;
-
+	open (PIDFILE, "$options{pidfile}") or die "Can't read $options{pidfile}:$!\n";
 	my $pid = <PIDFILE>;
-
 	close (PIDFILE);
 
 	if (!kill (0, $pid)) {
@@ -49,8 +49,10 @@ sub pid_unix {
 		print STDERR "Process $pid is already dead, but pidfile is still remaining...\n";
 
 		unlink $options {pidfile};
-		
-		print STDERR -f $options {pidfile} ? "Can't remove stale pidfile $options{pidfile}.\n" : "Stale pidfile $options{pidfile} removed.\n";
+
+		die "Can't remove stale pidfile $options{pidfile}.\n" if -f $options {pidfile};
+
+		print STDERR "Stale pidfile $options{pidfile} removed.\n";
 
 		return undef;
 
@@ -122,6 +124,26 @@ $SIG {CHLD} = \&REAPER;
 
 ################################################################################
 
+sub status {
+
+	my %options = options_unix ();
+	
+	unless (-f $options {pidfile}) {
+		print "Not running\n";
+		exit 0;
+	}
+		
+	if (my $pid = pid_unix (%options)) {
+		print "Running, PID=$pid\n";
+		exit 0;
+	}
+
+	print "Not running, but the $options{pidfile} still exists\n";
+
+}
+
+################################################################################
+
 sub start {
 	
 	require Dia::Loader;
@@ -130,26 +152,27 @@ sub start {
 	
 	$0 = $options {name} if $options {name};
 	
-	$options {pid_to_stop} = pid_unix (%options);
+	my $pid = pid_unix (%options); 
+	$pid and die "The server is already running, PID=$pid\n";
 
-	Dia::Loader -> import ();	
+	Dia::Loader -> import ();
 	APP::sql_reconnect  ();
-	APP::require_model  ();		
+	APP::require_model  ();
 
 	open (PIDFILE, ">$options{pidfile}") or die "Can't write to $options{pidfile}: $!\n";
-	
+
 	chdir '/' or die "Can't chdir to /: $!";
-		
+
 	open STDIN, '/dev/null' or die "Can't read /dev/null: $!";
-		
+
 	open STDOUT, '>/dev/null' or die "Can't write to /dev/null: $!";
-		
+
 	defined (my $pid = fork) or die "Can't fork: $!";
-		
+
 	exit if $pid;
-		
+
 	die "Can't start a new session: $!" if setsid == -1;
-			
+
 	print PIDFILE $$;
 	close (PIDFILE);
 
@@ -169,9 +192,22 @@ sub start {
 		
 	};
 
-	my $socket = FCGI::OpenSocket ($options {address}, $options {backlog});
+	my $socket;
 	
-	$options {address} =~ /^\:/ or chmod 0777, $options {address};
+	eval {
+		$socket = FCGI::OpenSocket ($options {address}, $options {backlog});
+
+		$options {address} =~ /^\:/ or chmod 0777, $options {address};
+
+	};
+	
+	if ($@) {
+
+		unlink $options {pidfile};
+
+		die "$@\n";
+
+	}
 
 	for (; 1; sleep) {
 	
@@ -202,23 +238,7 @@ sub start {
 				warn $@ if $@;
 
 			}
-		
-		}
-		
-		if ($options {pid_to_stop}) {
-			
-			my %o = %options;
-		
-			delete $options {pid_to_stop};
-			
-			unless (fork ()) {
 
-				keep_trying_to_stop (%o);
-				
-				exit;
-
-			}
-		
 		}
 
 	}
