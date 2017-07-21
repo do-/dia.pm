@@ -42,7 +42,13 @@ case "\$1" in
 
   status) \$CMD 'status'      ;;
 
-  start)  act Starting start ;;
+  start)
+  	cd \$APP_PATH
+  	cd ..
+  	cd front
+  	grunt build
+  	cd \$APP_PATH
+  	act Starting start ;;
 
   stop)   act Stopping stop  ;;
 
