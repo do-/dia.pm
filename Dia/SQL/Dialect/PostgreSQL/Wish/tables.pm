@@ -49,7 +49,10 @@ sub wish_to_explore_existing_tables {
 					pg_class.relnamespace = pg_namespace.oid
 					AND pg_class.relkind = 'r'
 				)
-				LEFT JOIN pg_description ON pg_description.objoid = pg_class.oid
+				LEFT JOIN pg_description ON (
+					pg_description.objoid = pg_class.oid
+					AND pg_description.objsubid = 0
+				)
 			WHERE
 				pg_namespace.nspname = current_schema()
 		
