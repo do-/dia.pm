@@ -112,6 +112,28 @@ sub wish_to_explore_existing_table_columns {
 				, pg_attrdef.adsrc
 				, pg_description.description
 				, pg_class.relname
+				, CASE atttypid
+					WHEN 21 /*int2*/ THEN 16
+					WHEN 23 /*int4*/ THEN 32
+					WHEN 20 /*int8*/ THEN 64
+					WHEN 1700 /*numeric*/ THEN
+					     CASE WHEN atttypmod = -1
+						   THEN null
+						   ELSE ((atttypmod - 4) >> 16) & 65535     -- calculate the precision
+						   END
+					WHEN 700 /*float4*/ THEN 24 /*FLT_MANT_DIG*/
+					WHEN 701 /*float8*/ THEN 53 /*DBL_MANT_DIG*/
+					ELSE null
+				END   AS numeric_precision,
+				CASE 
+				  WHEN atttypid IN (21, 23, 20) THEN 0
+				  WHEN atttypid IN (1700) THEN            
+					CASE 
+					    WHEN atttypmod = -1 THEN null       
+					    ELSE (atttypmod - 4) & 65535            -- calculate the scale  
+					END
+				     ELSE null
+				END AS numeric_scale				
 			FROM 
 				pg_namespace
 				LEFT JOIN pg_class ON (
@@ -138,7 +160,7 @@ sub wish_to_explore_existing_table_columns {
 		}, 
 		
 		sub {
-		
+
 			my $name = $i -> {attname};
 
 			$options -> {_cache} -> {$i -> {relname}} -> {$name} = (my $r = {
@@ -161,6 +183,14 @@ sub wish_to_explore_existing_table_columns {
 			
 				$r -> {COLUMN_DEF} =~ s{\:\:\w+$}{};
 
+			}
+			
+			if ($r -> {TYPE_NAME} eq NUMERIC) {
+			
+				$r -> {COLUMN_SIZE}    = $i -> {numeric_precision};
+
+				$r -> {DECIMAL_DIGITS} = $i -> {numeric_scale};
+				
 			}
 			
 		}
