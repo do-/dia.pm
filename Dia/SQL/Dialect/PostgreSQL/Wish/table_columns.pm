@@ -219,15 +219,17 @@ sub __genereate_sql_fragment_for_column {
 
 	if (defined $i -> {COLUMN_DEF}) {
 	
-		if ($i -> {COLUMN_DEF} !~ /\)/) {
+		my $d = $i -> {COLUMN_DEF};
+	
+		if ($d !~ /\)/) {
 
-			$i -> {COLUMN_DEF} =~ s{'}{''}g; #';
+			$d =~ s{'}{''}g; #';
 			
-			$i -> {COLUMN_DEF} = "'$i->{COLUMN_DEF}'";
+			$d = "'$i->{COLUMN_DEF}'";
 
 		}
 
-		$i -> {SQL} .= " DEFAULT $i->{COLUMN_DEF}";
+		$i -> {SQL} .= " DEFAULT $d";
 	
 	}
 
