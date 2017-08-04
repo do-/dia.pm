@@ -40,7 +40,7 @@ sub sql_execute {
 
 	my $affected = $st -> execute (@params);
 
-	__profile_out ('sql.prepare_execute', {label => $st -> {Statement} . ' ' . (join ', ', map {$db -> quote ($_)} @params)});
+	__profile_out ('sql.prepare_execute', {label => $st -> {Statement} . ' ' . (join ', ', map {$db -> quote (Encode::encode ('utf-8', $_))} @params)});
 
 	return wantarray ? ($st, $affected) : $st;
 
