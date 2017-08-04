@@ -155,7 +155,8 @@ sub start {
 	my $pid = pid_unix (%options); 
 	$pid and die "The server is already running, PID=$pid\n";
 
-	Dia::Loader -> import ();
+	APP::import ();
+	APP::require_config ();
 	APP::sql_reconnect  ();
 	APP::require_model  ();
 

@@ -19,6 +19,8 @@ use JSON;
 use CGI::Simple;
 use CGI::Simple::Cookie;
 
+package APP;
+
 ################################################################################
 
 sub loading_log (@) {
@@ -305,8 +307,6 @@ BEGIN {
 	finish_loading_logging      ();
 
 }
-
-package Dia;
 
 1;
 
