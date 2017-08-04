@@ -1,5 +1,5 @@
 use FCGI;
-use IO;
+use IO::File;
 use POSIX ":sys_wait_h", 'setsid';
 use Carp;
 
