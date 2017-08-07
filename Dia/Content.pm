@@ -111,8 +111,16 @@ sub add_totals {
 		my $first_change = -1;
 		
 		for (my $j = 0; $j < @{$options -> {fields}}; $j++) {
+		
 			my $name = $options -> {fields} -> [$j] -> {name};
-			next if $prev -> {$name} eq $curr -> {$name};
+			
+			my $get = sub {				
+				my ($v) = @_;
+				$v = $v -> {$_} foreach split /\./, $name;
+				return $v;
+			};
+			
+			next if &$get ($prev) eq &$get ($curr);
 			$first_change = $j;
 			last;
 		}
