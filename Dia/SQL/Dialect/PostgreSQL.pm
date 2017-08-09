@@ -711,10 +711,12 @@ sub sql_do_upsert {
 
 	my ($table, $data) = @_;
 	
-	exists $data -> {id} and die "sql_do_upsert called with id defined\n";
-
-	exists $data -> {fake} or $data -> {fake} = $_REQUEST {sid};
+	my $ref = ref $data;
 	
+	$ref eq HASH or $ref eq ARRAY or die "wrong 2nd argument"; # $data is either a single record or an array of records
+	
+	return if $ref eq ARRAY and !@$data;                       # nothing to do with an empty array
+
 	my $def = $DB_MODEL -> {tables} -> {$table} or die "Can't find $table definition in model\n";
 
 	my $keys = $def -> {keys} or die "$table definition have no keys at all\n";
@@ -730,13 +732,21 @@ sub sql_do_upsert {
 	$uniq =~ s{\!\s*$}{};
 	
 	my %uniq_fields = map {$_ => 1} split /\W/, $uniq [0];
+	
+	my @list = $ref eq ARRAY ? @$data : ($data);
+	
+	foreach my $i (@list) {
+
+		exists $i -> {id} and die "sql_do_upsert called with id defined\n";
+
+		exists $i -> {fake} or $data -> {fake} = $_REQUEST {sid};
+
+	}
 
 	my ($fields, $args, $set, @params) = ('', '', '');
+	
+	while (my ($k, $v) = each %{$list [0]}) {
 
-	while (my ($k, $v) = each %$data) {
-
-		defined $v or next;
-		
 		if (@params) {
 			$fields .= ', ';
 			$args   .= ', ';
@@ -744,23 +754,37 @@ sub sql_do_upsert {
 
 		$fields .= $k;
 		$args   .= '?';
-		push @params, $v;
 		
+		push @params, $ref eq HASH ? $v : [map {$_ -> {$k}} @$data];
+
 		unless ($uniq_fields {$k}) {
 
 			$set .= ', ' if length $set;
 
-			$set .= "$k = EXCLUDED.$k";
+			$set .= "$k = COALESCE (EXCLUDED.$k, $table.$k)"; # new NULLs don't override existing data
 
 		}
 
 	}
-	
-	my $sql = "INSERT INTO $table ($fields) VALUES ($args) ON CONFLICT ($uniq) WHERE fake = 0 DO UPDATE SET $set RETURNING id";
-	
-	$data -> {id} = sql_select_scalar ("$sql ", @params);
 
-	return $data -> {id};
+	my $sql = "INSERT INTO $table ($fields) VALUES ($args) ON CONFLICT ($uniq) WHERE fake = 0 DO UPDATE SET $set";
+	
+	if ($ref eq HASH) {
+
+		$sql .= ' RETURNING id';
+
+		return ($data -> {id} = sql_select_scalar ($sql, @params));
+
+	}
+	else {
+	
+		my $st = $db -> prepare ($sql);
+	
+		my @tuple_status;
+		
+		$st -> execute_array ({ArrayTupleStatus => \@tuple_status}, @params);
+
+	}
 
 }
 
