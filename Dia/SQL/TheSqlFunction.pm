@@ -301,7 +301,7 @@ sub _sql_filters {
 			
 			unless ($has_placeholder || $is_null) {
 
-				$field  =~ /(=|\<|\>|LIKE)\s*$/ or $field .= ' = ';	# 'id_org'           --> 'id_org = '
+				$field  =~ /(=|\<|\>|I?LIKE)\s*$/ or $field .= ' = ';	# 'id_org'           --> 'id_org = '
 
 				$field .= ' ? '; 					# 'id_org LIKE '     --> 'id_org LIKE ?'
 
@@ -313,17 +313,17 @@ sub _sql_filters {
 			
 			}
 			
-			my @tokens = split /(LIKE\s+\%?\?\%?)/, $field;
+			my @tokens = split /(I?LIKE\s+\%?\?\%?)/, $field;
 			
 			$$buffer .= "\n AND (";
 			
 			foreach my $token (@tokens) {
 			
-				if ($token =~ /LIKE\s+(\%?)\?(\%?)/) {
+				if ($token =~ /(I?LIKE)\s+(\%?)\?(\%?)/) {
 
-					$$buffer .= ' LIKE ?';
+					$$buffer .= " $1 ?";
 					my $v = shift @$values;
-					push @$params, "$1$v$2";
+					push @$params, "$2$v$3";
 
 				}
 				else {
