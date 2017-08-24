@@ -1115,8 +1115,6 @@ sub sql {
 					params 			=> \@params,
 
 					db 			=> $db,
-			
-					sql_translator_ref	=> get_sql_translator_ref(),
 
 				};
 

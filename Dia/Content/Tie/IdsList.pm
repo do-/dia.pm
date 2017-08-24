@@ -38,14 +38,8 @@ sub _check {
 
 	$self -> {body} = '-1';
 
-	my $sql;
+	my $sql = $self -> {sql};
                                         
-	if ($self -> {sql_translator_ref}) {
-		$sql = $self -> {sql_translator_ref} ($self -> {sql});
-	} else {
-		$sql = $self -> {sql};
-	}
-
 	my $st = $self -> {db} -> prepare_cached ($sql, {}, 3);
 	
 	$st -> execute (@{$self -> {params}});
