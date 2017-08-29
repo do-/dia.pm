@@ -160,7 +160,6 @@ sub add_totals {
 					is_total => -(1 + $j),
 					def      => $field,
 					data     => $curr,
-					label    => 'Итого',
 				};
 
 				if ($prev -> {_root} || !$curr -> {_root}) {
