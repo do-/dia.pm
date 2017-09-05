@@ -464,7 +464,7 @@ sub sql_check_seq {
 	
 	my $max = sql_select_scalar ("SELECT MAX(id) FROM $table");
 
-	sql_select_scalar ("SELECT setval('${table}_id_seq', ?", $max) if $max > 0;
+	sql_select_scalar ("SELECT setval('${table}_id_seq', ?)", $max) if $max > 0;
 
 }
 
