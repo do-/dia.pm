@@ -967,6 +967,7 @@ sub assert {
 		
 		my $col_options = {};
 		my $key_options = {};
+		my $trg_options = {};
 
 		foreach my $table (@tables) {
 					
@@ -984,6 +985,14 @@ sub assert {
 				$key_options -> {table_def} = $table;
 				
 				wish (table_keys => [map {{name => $_, parts => $table -> {keys} -> {$_}}} (keys %{$table -> {keys}})], $key_options);
+
+			}
+
+			if (exists $table -> {triggers}) {
+
+				$trg_options -> {table}     = $table -> {name};
+				
+				wish (table_triggers => [map {{name => $_, body => $table -> {triggers} -> {$_}}} (keys %{$table -> {triggers}})], $trg_options);
 
 			}
 
