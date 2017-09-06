@@ -30,7 +30,7 @@ sub wish_to_actually_create_table_triggers {
 		
 	foreach my $i (@$items) {
 	
-		my $events = join OR, @{$i -> {events}};
+		my $events = join ' OR ', @{$i -> {events}};
 	
 		foreach my $sql (
 		
