@@ -36,14 +36,34 @@ sub sql_execute {
 
 	__profile_in ('sql.prepare_execute');
 	
-	my $st = sql_prepare ($sql);
+	my ($st, $affected);
+	
+	eval {
+	
+		$st = sql_prepare ($sql);
 
-	my $affected = $st -> execute (@params);
-
+		$affected = $st -> execute (@params);
+	
+	};
+	
+	my $ex = $@;
+	
 	__profile_out ('sql.prepare_execute', {label => $st -> {Statement} . ' ' . (join ', ', map {$db -> quote (Encode::encode ('utf-8', $_))} @params)});
 
-	return wantarray ? ($st, $affected) : $st;
 
+	if ($ex) {
+
+		darn [$sql, @params];
+
+		die $ex;
+
+	}
+	else {
+
+		return wantarray ? ($st, $affected) : $st;
+
+	}
+	
 }
 
 ################################################################################
