@@ -40,17 +40,11 @@ function act {
 
 case "\$1" in
 
-  status) \$CMD 'status'      ;;
+  status) \$CMD 'status';;
 
-  start)
-  	cd \$APP_PATH
-  	cd ..
-  	cd front
-  	grunt build
-  	cd \$APP_PATH
-  	act Starting start ;;
+  start)  act Starting start;;
 
-  stop)   act Stopping stop  ;;
+  stop)   act Stopping stop;;
 
   restart|force-reload)
     \$0 stop;
