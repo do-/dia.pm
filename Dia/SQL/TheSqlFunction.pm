@@ -976,6 +976,8 @@ sub sql {
 		$order = order ($order)  if $order !~ /\W/;
 		
 		$order =~ s{(?<!\.)\b([a-z][a-z0-9_]*)\b(?!\.)}{(grep {$_ -> {alias} eq $1} @{$columns_by_grouping -> [1]}) > 0 ? $1 : "${root}.$1"}gsme;
+				
+		$order =~ s{\bDESC\b}{DESC NULLS LAST}g if ($SQL_VERSION -> {driver} eq 'PostgreSQL');
 		
 		$sql .= "\nORDER BY\n $order";
 
