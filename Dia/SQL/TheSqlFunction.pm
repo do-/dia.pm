@@ -992,6 +992,8 @@ sub sql {
 	
 	}
 	
+	$_REQUEST {__sql} = [$sql, \@params, \@cols];
+	
 	if ($sub) {
 	
 		return sql_select_loop (
