@@ -36,6 +36,59 @@ sub sql_execute {
 
 	__profile_in ('sql.prepare_execute');
 	
+	if (grep {ref} @params) {
+
+		my @tokens = split /(\?)/, $sql;
+		
+		my $s = '';
+		
+		my @p = ();
+		
+		foreach my $token (@tokens) {
+		
+			if ($token ne '?') {
+				
+				$s .= $token;
+				
+			}
+			else {
+			
+				my $param = shift @params;
+				
+				my $ref = ref $param;
+				
+				if (!$ref) {
+					
+					$s .= $token;
+					
+					push @p, $param;
+					
+				}
+				elsif ($ref eq ARRAY) {
+				
+					$s .= ('?,' x @$param); chop $s;
+					
+					push @p, @$param;
+				
+				}
+				else {
+				
+					darn [$sql, @params];
+
+					die "$ref params are not allowed\n";
+				
+				}
+			
+			}
+		
+		}
+		
+		$sql = $s;
+		
+		@params = @p;
+	
+	}
+
 	my ($st, $affected);
 	
 	eval {
