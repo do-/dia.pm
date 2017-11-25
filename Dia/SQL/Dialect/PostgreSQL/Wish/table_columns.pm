@@ -331,12 +331,20 @@ sub wish_to_actually_create_table_columns {
 	
 	my @actions    = ();
 	
+	my @updates    = ();
+	
 	foreach my $i (@$items) {
 	
 		if ($i -> {actions}) {
-		
-			push @actions, map {"ALTER $i->{name} $_"} @{$i -> {actions}};
 			
+			foreach my $action (@{$i -> {actions}}) {
+			
+				push @updates, "UPDATE $options->{table} SET $i->{name} = $i->{COLUMN_DEF} WHERE $i->{name} IS NULL" if $action =~ /SET DEFAULT/;
+
+				push @actions, "ALTER $i->{name} $action";
+			
+			}
+
 		}
 		else {
 		
@@ -351,6 +359,8 @@ sub wish_to_actually_create_table_columns {
 		}
 	
 	}
+	
+	sql_do ($_) foreach @updates;
 	
 	sql_do ("ALTER TABLE $options->{table} " . (join ', ', @actions)) if @actions;
 	
