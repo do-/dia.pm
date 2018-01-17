@@ -138,7 +138,7 @@ sub add_totals {
 					$totals_bottom [$j] -> {is_total} = 1 + $j;
 					$totals_bottom [$j] -> {def}      = $field;
 					$totals_bottom [$j] -> {data}     = $prev;
-					$totals_bottom [$j] -> {label}    = 'Èòîãî';
+					$totals_bottom [$j] -> {label}    = 'Ð˜Ñ‚Ð¾Ð³Ð¾';
 
 					push @result, $totals_bottom [$j];
 					
