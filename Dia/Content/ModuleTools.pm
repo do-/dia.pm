@@ -202,6 +202,8 @@ sub require_update_scripts {
 
 			}
 						
+			$db -> {AutoCommit} = 1;
+
 			sql_do ("UPDATE $conf->{systables}->{__update_exec_log} SET dt_to = ?, is_ok = 1 WHERE id = ?", $ts, $id_log);
 
 			$ts =~ s{\D+}{_}g;
