@@ -487,10 +487,56 @@ sub sql_select_subtree {
 
 ################################################################################
 
+sub sql_do_insert_all {
+
+	__profile_in ('sql.do_insert_all');
+
+	my ($table, $records) = @_;
+	
+	ref $records eq ARRAY or die 'Not a list: ' . Dumper ($records);	
+
+	@$records > 0 or return __profile_out ('sql.sql_do_insert_array', {label => 'Nothing to do'});
+	
+	my @fields = (); while (my ($k, $v) = each %{$records -> [0]}) {push @fields, $k if defined $v};
+
+	my $sql = "INSERT INTO $table (" . (join ', ', @fields) . ') VALUES (' . ('?,' x @fields); chop $sql; $sql .= ')';
+
+	my @params = map {my $field = $_; [map {$_ -> {$field}} @$records]} @fields;
+	
+	my @tuple_status = ();
+
+	eval {
+
+		my $st = ($db -> prepare ($sql));
+
+		$st -> execute_array ({ArrayTupleStatus => \@tuple_status}, @params);
+		
+		$sql = $st -> {Statement};
+
+	};
+
+	my $ex = $@;
+	
+	__profile_out ('sql.do_insert_all', {label => $st -> {Statement} . ' ' . (join ', ', map {'[' . (join ', ', map {$db -> quote (Encode::encode ('utf-8', $_))} @$_) . ']'} @params)});
+
+	if ($ex) {
+
+		darn [$sql, @params];
+
+		die $ex;
+
+	}
+
+}
+
+################################################################################
+
 sub sql_do_insert {
 
 	my ($table, $data) = @_;
-		
+
+	return sql_do_insert_all (@_) if ref $data eq ARRAY;
+
 	exists $data -> {fake} or $data -> {fake} = $_REQUEST {sid};
 
 	my ($fields, $args, @params) = ('', '');
