@@ -1,6 +1,6 @@
 require JSON;
 
-my $fn = 'conf/elud.json';
+my $fn = $ENV {DIA_PM_CONFIGURATION_FILE_PATH} || 'conf/elud.json';
 open (I, $fn) or die "Can't read $fn: $!";
 my $json = join '', grep /^[^\#]/, (<I>);
 close (I);
