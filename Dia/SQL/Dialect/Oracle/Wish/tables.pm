@@ -117,7 +117,7 @@ sub wish_to_actually_create_tables {
 
 		my %name = map {$_ => sql_mangled_name ($_ . $i -> {name})} qw {pk seq trigger};
 
-		sql_do (qq {CREATE TABLE "$i->{name}" ($i->{pk}->{name} NUMBER (10, 0) CONSTRAINT "$name{pk}" PRIMARY KEY)});
+		sql_do (qq {CREATE TABLE "$i->{name}" ($i->{pk}->{name} NUMBER (10, 0) CONSTRAINT "$name{pk}" PRIMARY KEY, fake NUMBER (10, 0), fake_id AS (DECODE (fake, 0, 0, id)))});
 		
 		$i -> {pk} -> {_EXTRA} =~ /auto_increment/ or next;
 				
