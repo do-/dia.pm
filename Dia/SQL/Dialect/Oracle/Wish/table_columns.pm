@@ -104,6 +104,14 @@ sub wish_to_clarify_demands_for_table_columns {
 
 	}
 	
+	if ($i -> {TYPE_NAME} eq 'UUID') {
+	
+		$i -> {TYPE_NAME} = 'RAW';
+
+		$i -> {COLUMN_SIZE} = 16;
+
+	}
+
 	exists $i -> {NULLABLE} or $i -> {NULLABLE} = $i -> {name} eq 'id' ? 0 : 1;
 
 	exists $i -> {COLUMN_DEF} or $i -> {COLUMN_DEF} = undef;
