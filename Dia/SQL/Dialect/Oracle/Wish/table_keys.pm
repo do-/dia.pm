@@ -68,7 +68,7 @@ sub wish_to_explore_existing_table_keys {
 
 	my %k = ();
 
-	sql_select_loop (<<EOS, sub {$k {$i -> {index_name}} -> [$i -> {column_position} - 1] = uc $i -> {column_name}}, uc_table_name ($options -> {table}));
+	sql_select_loop (<<EOS, sub {$k {$i -> {index_name}} -> [$i -> {column_position} - 1] = sql_field_name ($i -> {column_name})}, uc_table_name ($options -> {table}));
 		SELECT 
 			user_indexes.index_name
 			, user_ind_columns.column_name
