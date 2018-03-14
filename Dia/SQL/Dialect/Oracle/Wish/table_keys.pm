@@ -16,7 +16,13 @@ sub wish_to_clarify_demands_for_table_keys {
 
 	$i -> {global_name} = sql_mangled_name ($options -> {table} . '_' . delete $i -> {name});
 
-	ref $i -> {parts} eq ARRAY or $i -> {parts} = [split /\,/, $i -> {parts}];
+	unless (ref $i -> {parts} eq ARRAY) {
+
+		$i -> {parts} =~ s{\!$}{,fake_id};
+
+		$i -> {parts} = [split /\,/, $i -> {parts}];
+
+	}
 
 	foreach my $part (@{$i -> {parts}}) {
 	
@@ -81,7 +87,7 @@ sub wish_to_explore_existing_table_keys {
 			AND user_indexes.table_name = ?
 EOS
 
-	sql_select_loop (<<EOS, sub {$k {$i -> {index_name}} -> [$i -> {column_position} - 1] = uc $i -> {column_expression}; $k {$i -> {index_name}} -> [$i -> {column_position} - 1] =~ s/SYS_OP_C2C/TO_CHAR/g;}, uc_table_name ($options -> {table}));
+	sql_select_loop (<<EOS, sub {$k {$i -> {index_name}} -> [$i -> {column_position} - 1] ||= uc $i -> {column_expression}; $k {$i -> {index_name}} -> [$i -> {column_position} - 1] =~ s/SYS_OP_C2C/TO_CHAR/g;}, uc_table_name ($options -> {table}));
 		SELECT 
 			user_indexes.index_name
 			, user_ind_expressions.column_expression
@@ -154,8 +160,10 @@ sub wish_to_actually_create_table_keys {
 	foreach my $i (@$items) {
 	
 		eval { sql_do (qq {DROP INDEX \"$i->{global_name}\"})};
+		
+		my $unique = $i -> {def} =~ /"FAKE_ID"$/ ? 'UNIQUE' : '';
 
-		sql_do (qq {CREATE INDEX \"$i->{global_name}\" ON $options->{table} ($i->{def})});
+		sql_do (qq {CREATE $unique INDEX \"$i->{global_name}\" ON $options->{table} ($i->{def})});
 	
 	}
 

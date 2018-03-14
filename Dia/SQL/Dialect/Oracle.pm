@@ -23,6 +23,8 @@ sub sql_version {
 	$version -> {string} =~ s{ release.*}{}i;
 
 	$version -> {number_tokens} = [split /\./, $version -> {number}];
+	
+	$version -> {features} -> {'idx.partial'} = ($version -> {number_tokens} -> [0] > 10);
 
 	my %s = (
 	
