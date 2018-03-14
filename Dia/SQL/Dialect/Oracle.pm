@@ -1148,6 +1148,27 @@ sub uc_table_name {
 
 }
 
+################################################################################
+
+sub sql_do_update {
+
+	my ($table, $data, $id) = @_;
+	
+	$id ||= ((delete $data -> {id}) || $_REQUEST {id}) or die 'Wrong argument for sql_do_update: ' . Dumper (\@_);
+	
+	$data -> {fake} //= 0;
+	
+	my (@q, @p) = ();
+	
+	while (my ($k, $v) = each %$data) {	
+		push @q, $db -> quote_identifier (uc $k) . " = ?";
+		push @p, $v;	
+	}
+	
+	sql_do ("UPDATE " . $db -> quote_identifier (uc_table_name ($table)) . " SET " . (join ', ', @q) . " WHERE id = ?", @p, $id);
+
+}
+
 #############################################################################
 
 sub get_keys {
