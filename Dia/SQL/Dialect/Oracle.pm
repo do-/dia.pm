@@ -1191,4 +1191,113 @@ sub get_keys {
 
 sub sql_field_name {'"'. uc $_[0] . '"'}
 
+################################################################################
+
+sub sql_do_upsert {
+
+	my ($table, $data) = @_;
+	
+	my $ref = ref $data;
+	
+	$ref eq HASH or $ref eq ARRAY or die "wrong 2nd argument"; # $data is either a single record or an array of records
+	
+	return if $ref eq ARRAY and !@$data;                       # nothing to do with an empty array
+
+	my $def = $DB_MODEL -> {tables} -> {$table} or die "Can't find $table definition in model\n";
+
+	my $keys = $def -> {keys} or die "$table definition have no keys at all\n";
+
+	my @uniq = grep {/\!\s*$/} values %$keys;
+
+	@uniq > 0 or die "$table definition have no partially unique keys\n";
+
+	@uniq < 2 or die "$table definition have more than one partially unique key\n";
+	
+	my ($uniq) = @uniq;
+	
+	$uniq =~ s{\!\s*$}{};
+	
+	my %uniq_fields = map {$_ => 1} split /\W/, $uniq [0];
+	
+	my @list = $ref eq ARRAY ? @$data : ($data);
+	
+	foreach my $i (@list) {
+
+		exists $i -> {id} and die "sql_do_upsert called with id defined\n";
+
+		exists $i -> {fake} or $data -> {fake} = $_REQUEST {sid};
+
+	}
+
+	my ($select, $on, $set, $insert, $values, @params) = ('', '', '');
+	
+	while (my ($k, $v) = each %{$list [0]}) {
+	
+		my $f = sql_field_name ($k);
+
+		$select .= "? $f,";
+		$insert .= "$f,";
+		$values .= "\"_new\".$f,";
+
+		push @params, $ref eq HASH ? $v : [map {$_ -> {$k}} @$data];
+
+		if ($uniq_fields {$k}) {
+		
+			$on  .= qq { AND "_old".$f="_new".$f};
+		
+		}
+		else {
+
+			$set .= qq {"_old".$f = NVL ("_new".$f, "_old".$f),}; # new NULLs don't override existing data
+
+		}
+
+	}
+	
+	chop $select;
+	chop $set;
+	chop $insert;
+	chop $values;	
+
+	my $sql = qq {
+		MERGE INTO $table "_old"
+		USING (SELECT $select FROM DUAL) "_new"
+		ON ("_old"."FAKE_ID" = 0 $on)
+		WHEN     MATCHED THEN UPDATE SET $set
+		WHEN NOT MATCHED THEN INSERT ($insert) VALUES ($values)
+	};
+
+	if ($ref eq HASH) {
+	
+		sql_do ($sql, @params);
+		
+		my $lookup = "SELECT id FROM $table WHERE fake = 0";
+		
+		@params = ();
+		
+		foreach my $f (keys %uniq_fields) {
+		
+			$lookup .= ' AND ';
+			$lookup .= sql_field_name ($f);
+			$lookup .= '=?';
+		
+			push @params, $list [0] -> {$f};
+		
+		}
+
+		return ($data -> {id} = sql_select_scalar ($lookup, @params));
+
+	}
+	else {
+	
+		my $st = $db -> prepare ($sql);
+	
+		my @tuple_status;
+		
+		$st -> execute_array ({ArrayTupleStatus => \@tuple_status}, @params);
+
+	}
+
+}
+
 1;
