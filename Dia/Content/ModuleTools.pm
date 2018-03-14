@@ -158,8 +158,13 @@ sub require_update_scripts {
 		my $size = -s $path;
 
 		my $md5 = _file_md5 ($path);
-		
-		my $yet = sql_select_hash ("SELECT * FROM $conf->{systables}->{__update_exec_log} WHERE name = ? AND size = ? AND md5 = ?", $name, $size, $md5);
+
+		my $yet = sql ($conf -> {systables} -> {__update_exec_log} => [
+			[name  => $name],
+			[size  => $size],
+			[md5   => $md5],
+			[LIMIT => 1],
+		]);
 
 		if ($yet) {
 		

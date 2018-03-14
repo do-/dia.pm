@@ -28,7 +28,7 @@ sub _sql_list_fields {
 		$h {$_} ||= 1 foreach grep {$c -> {$_} -> {TYPE_NAME} ne 'blob'} keys %$c;
 					
 		return map {{
-			src   => "$table_alias.$_", 
+			src   => $table_alias . '.' . sql_field_name ($_), 
 			alias => $_,
 			table => $table,
 		}} keys %h;
@@ -76,7 +76,7 @@ sub _sql_list_fields {
 		
 		if ($token =~ /^[a-z][a-z_\d]*$/) {
 
-			$buffer .= "$table_alias.$token";   next;
+			$buffer .= $table_alias . '.' . sql_field_name ($token);   next;
 
 		}
 

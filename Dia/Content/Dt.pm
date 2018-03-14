@@ -46,7 +46,11 @@ sub dt_iso {
 	my $f = 
 		@ymd == 3 ? '%04d-%02d-%02d' :
 		@ymd == 6 ? '%04d-%02d-%02d %02d:%02d:%02d' :
-		@ymd == 7 ? '%04d-%02d-%02d %02d:%02d:%02d.%06d' :
+		@ymd == 7 ? (
+			$SQL_VERSION -> {driver} eq 'Oracle' ? 
+			'%04d-%02d-%02d %02d:%02d:%02d'      :
+			'%04d-%02d-%02d %02d:%02d:%02d.%06d'
+		) :
 		die "Wrong dt_iso params: " . Dumper (\@_);
 	
 	if ($ymd [0] <= 31) {

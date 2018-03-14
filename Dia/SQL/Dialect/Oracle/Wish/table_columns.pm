@@ -400,7 +400,7 @@ sub wish_to_actually_alter_table_columns {
 	
 	$verb ||= 'MODIFY';
 	
-	sql_do ("ALTER TABLE $options->{table} $verb (" . (join ', ', map {"$_->{name} $_->{SQL}"} @$items) . ')');
+	sql_do ("ALTER TABLE $options->{table} $verb (" . (join ', ', map {'"' . uc $_->{name} . "\" $_->{SQL}"} @$items) . ')');
 
 	__recompile_triggers_for_table ($options -> {table_name});
 
@@ -430,6 +430,74 @@ sub wish_to_actually_recreate_table_columns {
 	wish_to_actually_comment_table_columns (@_);
 
 	__recompile_triggers_for_table ($options -> {table_name});
+
+}
+
+#############################################################################
+
+sub wish_to_actually_update_table_data {	
+
+	my ($items, $options) = @_;
+
+	@$items > 0 or return;
+
+	my @cols = ();
+	my @prms = ();
+	
+	foreach my $col (grep {$_ ne 'id'} keys %{$items -> [0]}) {
+		
+		push @cols, "$model_update->{quote}$col$model_update->{quote} = ?";
+		push @prms, [ map {$_ -> {$col}} @$items];
+	
+	}
+	
+	push @prms, [ map {$_ -> {id}} @$items];
+	
+	my $sql = "UPDATE $options->{table} SET " . (join ', ', @cols) . " WHERE id = ?";
+		
+	__profile_in ('sql.prepare_execute');
+
+	my $sth = $db -> prepare ($sql);
+
+	$sth -> execute_array ({ArrayTupleStatus => \my @tuple_status}, @prms);
+	
+	__profile_out ('sql.prepare_execute', {label => $sql . ' ' . Dumper (\@prms)});
+
+	$sth -> finish;
+
+}
+
+#############################################################################
+
+sub wish_to_actually_update_table_data {	
+
+	my ($items, $options) = @_;
+
+	@$items > 0 or return;
+
+	my @cols = ();
+	my @prms = ();
+	
+	foreach my $col (grep {$_ ne 'id'} keys %{$items -> [0]}) {
+		
+		push @cols, '"' . uc $col . '" = ?';
+		push @prms, [ map {$_ -> {$col}} @$items];
+	
+	}
+	
+	push @prms, [ map {$_ -> {id}} @$items];
+	
+	my $sql = "UPDATE $options->{table} SET " . (join ', ', @cols) . " WHERE id = ?";
+		
+	__profile_in ('sql.prepare_execute');
+
+	my $sth = $db -> prepare ($sql);
+
+	$sth -> execute_array ({ArrayTupleStatus => \my @tuple_status}, @prms);
+	
+	__profile_out ('sql.prepare_execute', {label => $sql . ' ' . Dumper (\@prms)});
+
+	$sth -> finish;
 
 }
 
