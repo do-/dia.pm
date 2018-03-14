@@ -397,9 +397,15 @@ sub _sql_filters {
 
 sub _sql_unwrap_record {
 
-	my ($record, $cols) = @_;
+	my ($record, $cols) = @_;	
 
 	foreach my $key (keys %$record) {
+	
+		if ($record -> {$key} =~ /^[01]$/) {
+
+			$record -> {$key} = 0 + $record -> {$key};
+
+		}
 		
 		if ($key =~ /^gfcrelf(\d+)$/) {
 				
