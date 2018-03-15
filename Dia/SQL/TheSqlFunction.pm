@@ -84,7 +84,7 @@ sub _sql_list_fields {
 		
 			my $alias = '';
 			
-			if ($buffer =~ /^\s*\w+\.\"(\w+)\"\s*$/sm) {
+			if ($buffer =~ /^\s*\w+\.\"?(\w+)\"?\s*$/sm) {
 			
 				$alias  = lc $1;
 			
