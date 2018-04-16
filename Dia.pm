@@ -235,30 +235,6 @@ sub check_module_memory {
 
 }
 
-################################################################################
-
-sub check_module_mail {
-
-	loading_log " check_module_mail................... ";
-
-	if ($preconf -> {mail}) { 
-		
-		require Dia::Content::Mail;
-
-		loading_log "$preconf->{mail}->{host}, ok.\n";
-		
-	} 
-	else { 
-		
-		eval 'sub send_mail {warn "Mail parameters are not set.\n" }';
-
-		loading_log "no mail, ok.\n";
-		
-	}
-
-}
-
-
 #############################################################################
 
 sub darn ($) {warn Dumper ($_[0]); return $_[0]}

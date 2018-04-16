@@ -173,7 +173,7 @@ sub send_mail {
 		$repeat--;
 
 		$smtp = Net::SMTPS -> new ($preconf -> {mail} -> {host}, %{$preconf -> {mail} -> {options}});
-
+darn $@ if $@;
 		$smtp or next;
 		
 		if ($preconf -> {mail} -> {user}) {

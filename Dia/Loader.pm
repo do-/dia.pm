@@ -13,6 +13,8 @@ sub import {
 	our $PACKAGE_ROOT = [Cwd::abs_path ('lib'), $generic_path];
 			
 	unshift (@INC, $PACKAGE_ROOT -> [0]);
+				
+	require Dia::Content::Mail if $APP::preconf -> {mail};
 
 }
 

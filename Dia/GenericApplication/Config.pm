@@ -8,12 +8,9 @@ sub fill_in {
 
 	our $number_format ||= Number::Format -> new (%{$conf -> {number_format}});
 
-   	fill_in_things (core_modules =>
-   		
-		mail                 => 1,
+   	fill_in_things (core_modules =>   		
 		memory               => 1,
-		uri_escape           => 1,
-   	
+		uri_escape           => 1,   	
 	);
 
    	fill_in_things (sql_types =>
