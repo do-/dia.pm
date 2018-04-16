@@ -12,7 +12,6 @@ sub fill_in {
    		
 		mail                 => 1,
 		memory               => 1,
-		queries              => 1,
 		uri_escape           => 1,
    	
 	);

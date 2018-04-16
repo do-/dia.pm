@@ -258,28 +258,6 @@ sub check_module_mail {
 
 }
 
-################################################################################
-
-sub check_module_queries {
-
-	loading_log " check_module_queries................ ";
-
-	if ($conf -> {core_store_table_order}) { 
-		
-		require Dia::Content::Queries;
-
-		loading_log "stored queries enabled, ok.\n";
-
-	} 
-	else { 
-		
-		eval 'sub fix___query {}; sub check___query {}';
-	
-		loading_log "no stored queries, ok.\n";
-
-	}
-
-}
 
 #############################################################################
 

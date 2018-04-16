@@ -485,9 +485,7 @@ sub sql {
 		return $data;
 	
 	}
-	
-	check___query ();
-	
+		
 	my $_args = $preconf -> {core_debug_sql} ? [(), @_] : undef;
 
 	my ($root_table, @other) = @_;
@@ -1174,15 +1172,10 @@ sub order {
 	my $name_desc  = $options -> {suffix} ? "desc_$$options{suffix}"  : 'desc';
 	
 	my @default_order;
-	check___query ();
 
 	while (@_) {
 		my $name  = shift;
 		my $sql   = shift;
-		
-		$default_order [$_QUERY -> {content} -> {columns} -> {$name} -> {sort}] = {name => $name, sql => $sql} 
-			if (exists $_QUERY -> {content} -> {columns} -> {$name} && $_QUERY -> {content} -> {columns} -> {$name} -> {sort});
-			
 		$name eq $_REQUEST {$name_order} or next;
 		$result   = $sql;
 		last;
@@ -1193,18 +1186,6 @@ sub order {
 
 			next 
 				unless $order;
-			
-			
-			unless ($_QUERY -> {content} -> {columns} -> {$order -> {name}} -> {desc}) {
-			
-				$order -> {sql} =~ s{(?<=SC)\!}{}g;
-				$result .= ','
-					if $result;
-				$result .= ' ' . $order -> {sql};
-				
-				next;
-			}
-			
 			
 			my @new = ();
 			
