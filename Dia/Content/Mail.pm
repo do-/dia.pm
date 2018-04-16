@@ -120,7 +120,7 @@ sub send_mail {
 
 		##### Message body
 	
-	$options -> {body_charset} ||= 'windows-1251';
+	$options -> {body_charset} ||= 'utf-8';
 	$options -> {content_type} ||= 'text/plain';
 	
 	if ($options -> {href}) {	
@@ -327,14 +327,7 @@ sub encode_mail_address {
 sub encode_mail_header {
 
 	my ($s, $charset) = @_;
-
-	$charset ||= 'windows-1251';
-	
-	if ($charset eq 'windows-1251') {
-		$s =~ y{ÀÁÂÃÄÅ¨ÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÕÖ×ØÙÚÛÜİŞßàáâãäå¸æçèéêëìíîïğñòóôõö÷øùúûüışÿ}{áâ÷çäå³öúéêëìíîïğòóôõæèãşûıÿùøüàñÁÂ×ÇÄÅ£ÖÚÉÊËÌÍÎÏĞÒÓÔÕÆÈÃŞÛİßÙØÜÀÑ};
-		$charset = 'koi8-r';
-	}
-
+	$charset ||= 'utf-8';	
 	$s = '=?' . $charset . '?B?' . encode_base64 (Encode::encode ($charset, $s)) . '?=';
 	$s =~ s{[\n\r]}{}g;
 	return $s;	
