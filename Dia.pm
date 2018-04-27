@@ -1,4 +1,4 @@
-no warnings;   
+no warnings;
 
 use Carp;
 use Cwd;
@@ -53,43 +53,43 @@ sub check_version_by_git_files {
 	-d (my $dir = "$preconf->{core_path}/.git") or return undef;
 
 	open (H, "$dir/HEAD") or return undef;
-	
+
 	my $head = <H>; close H;
-	
+
 	$head =~ /ref:\s*([\w\/]+)/ or return undef;
-	
+
 	open (H, "$dir/$1") or return undef;
-	
+
 	$head = <H>; close H;
-	
+
 	$head =~ /^([a-f\d]{2})([a-f\d]{5})([a-f\d]{33})/ or return undef;
-	
+
 	my $tag = "$1$2";
-	
+
 	my $fn = "$dir/objects/$1/$2$3";
-	
+
 	open (H, $fn) or return undef;
-	
+
 	my $zipped;
-	
+
 	read (H, $zipped, -s $fn);
-	
+
 	close (H);
-	
+
 	length $zipped or return undef;
-	
+
 	my ($i, $status) = new Compress::Raw::Zlib::Inflate ();
 
 	$status and return undef;
 
 	$status = $i -> inflate ($zipped, my $src, 1);
-	
+
 	foreach (split /\n/, $src) {
-	
+
 		/committer.*?(\d+) ([\+\-])(\d{4})$/ or next;
-		
+
 		my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = gmtime ($1);
-		
+
 		return sprintf ("%02d.%02d.%02d.%s", $year - 100, $mon + 1, $mday, $tag);
 
 	}
@@ -103,14 +103,14 @@ sub check_version_by_git {
 	my $cwd = getcwd ();
 
 	chdir $preconf -> {core_path};
-	
+
 	my $head = `git show HEAD --abbrev-commit --pretty=medium`;
-	
+
 	chdir $cwd;
-	
+
 	$head =~ /^commit (\w+).+Date\:\s+\S+\s+(\S+)\s+(\d+)\s[\d\:]+\s(\d+)/sm or return check_version_by_git_files ();
-	
-        return sprintf ("%02d.%02d.%02d.%s", 
+
+        return sprintf ("%02d.%02d.%02d.%s",
         	$4 - 2000,
         	1 + (index ('JanFebMarAprMayJunJulAugSepOctNovDec', $2) / 3),
         	$3,
@@ -122,46 +122,46 @@ sub check_version_by_git {
 ################################################################################
 
 sub check_version {
-	
+
 	use File::Spec;
 
 	my $dir = File::Spec -> rel2abs (__FILE__);
-		
+
 	$dir =~ s{Dia.pm}{};
-	
+
 	$dir =~ y{\\}{/};
-	
+
 	$preconf -> {core_path} = $dir;
 
 	require Date::Calc;
 
 	return if $Dia::VERSION ||= $ENV {DIA_BANNER_PRINTED};
-	
+
 	my ($year) = Date::Calc::Today ();
-	
+
 	eval {require Dia::Version};
-	
+
 	$Dia::VERSION ||= check_version_by_git ();
-	
+
 	$Dia::VERSION ||= 'UNKNOWN (please write some Dia::Version module)';
-	
+
 	my $year;
-	
+
 	if ($Dia::VERSION =~ /^(\d\d)\.\d\d.\d\d/) {
-	
+
 		$year = '20' . $1;
-	
+
 	}
 	else {
 
 		($year) = Date::Calc::Today ();
 
 	}
-	
+
 	my $length = 23 + length $Dia::VERSION;
-	
+
 	$length > 49 or $length = 49;
-	
+
 	my $bar = '-' x $length;
 
 	loading_log <<EOT;
@@ -175,7 +175,7 @@ sub check_version {
      * *
      **
  *****          Copyright (c) 2002-$year by Dia
- 
+
  $bar
 
 EOT
@@ -203,26 +203,26 @@ sub finish_loading_logging {
 ################################################################################
 
 sub check_module_uri_escape {
-	
+
 	loading_log " check_module_uri_escape............. ";
 
 	eval 'use URI::Escape::XS qw(uri_escape uri_unescape)';
 
 	if ($@) {
-	
+
 		eval 'use URI::Escape qw(uri_escape uri_unescape); sub uri_escape {URI::Escape::uri_escape_utf8 (@_)}';
-		
+
 		die $@ if $@;
 
 		loading_log "URI::Escape $URI::Escape::VERSION ok. [URI::Escape::XS SUGGESTED]\n";
-		
+
 	}
 	else {
-	
+
 		loading_log "URI::Escape::XS $URI::Escape::XS::VERSION ok.\n";
 
 	}
-	
+
 }
 
 ################################################################################
@@ -244,10 +244,10 @@ sub darn ($) {warn Dumper ($_[0]); return $_[0]}
 BEGIN {
 
 	foreach (grep {/^Dia/} keys %INC) { delete $INC {$_} }
-	
+
 	check_constants             ();
 	check_version               ();
-	
+
 	loading_log                 (" Running on Perl $^V ($^X)\n");
 
 	start_loading_logging       ();
@@ -255,7 +255,7 @@ BEGIN {
 	require "Dia/$_.pm" foreach qw (Content SQL GenericApplication/Config);
 
 	require_config              ();
-	
+
 	&{"check_module_$_"}        () foreach sort grep {!/^_/} keys %{$conf -> {core_modules}};
 
 	finish_loading_logging      ();
@@ -287,5 +287,3 @@ Dmitry Ovsyanko
 Pavel Kudryavtzev
 
 Roman Lobzin
-
-Vadim Stepanov
