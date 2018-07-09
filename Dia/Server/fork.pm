@@ -159,6 +159,7 @@ sub start {
 	APP::require_config ();
 	APP::sql_reconnect  ();
 	APP::require_model  ();
+	APP::sql_disconnect ();
 
 	open (PIDFILE, ">$options{pidfile}") or die "Can't write to $options{pidfile}: $!\n";
 
