@@ -13,43 +13,43 @@ sub sql_version {
 	$version -> {strings} = [ sql_select_col ('SELECT * FROM V$VERSION') ];
 
 	$version -> {string} = $version -> {strings} -> [0];
-	
+
 	if ($version -> {string} =~ /release ([\d\.]+)/i) {
-	
+
 		$version -> {number} = $1;
-	
+
 	}
 
 	$version -> {string} =~ s{ release.*}{}i;
 
 	$version -> {number_tokens} = [split /\./, $version -> {number}];
-	
+
 	$version -> {features} -> {'idx.partial'} = ($version -> {number_tokens} -> [0] > 10);
 
 	my %s = (
-	
+
 		nls_numeric_characters => '.,',
 		nls_sort               => ($conf -> {db_sort} ||= 'BINARY'),
 
 	);
-	
+
 	$s {nls_date_format} = $s {nls_timestamp_format} = ($conf -> {db_date_format} ||= 'yyyy-mm-dd hh24:mi:ss');
 
 	sql_do ('ALTER SESSION SET ' . (join ' ', map {"$_ = '$s{$_}'"} keys %s));
-	
+
 	my $systables = {};
-	
+
 	foreach my $key (keys %{$conf -> {systables}}) {
 		my $table = $conf -> {systables} -> {$key};
 		$table =~ s/[\"\']//g;
 		$systables -> {lc $table} = 1;
 	}
-	
+
 	sql_select_loop ("SELECT table_name FROM user_tables", sub {
 		next unless ($systables -> {lc $i -> {table_name}});
 		$version -> {tables} -> {lc $i -> {table_name}} = $i -> {table_name};
 	});
-	
+
 	$version -> {_keys_map} = {
 		REWBFHHHKGKGLLD => 'user',
 		NBHCQQEHGDFJFXF => 'level',
@@ -64,13 +64,13 @@ sub sql_version {
 sub sql_execute {
 
 	my ($st, @params) = sql_prepare (@_);
-	
+
 	__profile_in ('sql.execute');
 
 	my $affected;
-	
-	my $last_i = -1;	
-	
+
+	my $last_i = -1;
+
 	foreach (@params, 1) {
 
 		eval { $affected = $st -> execute (@params); };
@@ -79,9 +79,9 @@ sub sql_execute {
 
 		$@ =~ /ORA-01722/    or die $@;
 		$@ =~ /\<\*\>p(\d+)/ or die $@;
-		
+
 		my $i = $1 - 1;
-		
+
 		my $old = $params [$i];
 
 		$last_i != $i or die "Oracle refused twice to treat '$old' as a number";
@@ -95,7 +95,7 @@ sub sql_execute {
 		$params [$i] > 0 or $params [$i] < 0 or $params [$i] eq '0' or die "Значение '$old' не может быть истолковано как число.";
 
 	}
-	
+
 	__profile_out ('sql.execute', {label => $st -> {Statement} . ' ' . (join ', ', map {$db -> quote ($_)} @params)});
 
 	return wantarray ? ($st, $affected) : $st;
@@ -107,18 +107,18 @@ sub sql_execute {
 sub sql_prepare {
 
 	__profile_in ('sql.prepare');
-	
+
 	my ($sql, @params) = @_;
 
 	$sql =~ s{^\s+}{};
 	$sql =~ s{[\015\012]+}{$/}gs;
-		
+
 	my $qoute = '"';
 
 	if ($sql =~ /^(\s*SELECT.*FROM\s+)(.*)$/is) {
-	
+
 		my ($head, $tables_reference, $tail) = ($1, $2);
-		
+
 		if ($tables_reference =~ /^(.*)((WHERE|GROUP|ORDER).*)$/is) {
 			($tables_reference, $tail) = ($1, $2);
 		}
@@ -133,14 +133,14 @@ sub sql_prepare {
 		foreach my $table_name (@table_names) {
 			$sql =~ s/(\W)($table_name)\./$1$qoute$2$qoute\./g;
 		}
-	} 
-	
+	}
+
 	$sql =~ s/^(\s*UPDATE\s+)(_\w+)/$1$qoute$2$qoute/is;
 	$sql =~ s/^(\s*INSERT\s+INTO\s+)(_\w+)/$1$qoute$2$qoute/is;
 	$sql =~ s/^(\s*DELETE\s+FROM\s+)(_\w+)/$1$qoute$2$qoute/is;
-	
+
 	my $st;
-	
+
 	if ($preconf -> {db_cache_statements}) {
 
 		eval {$st = $db  -> prepare_cached ($sql, {
@@ -155,7 +155,7 @@ sub sql_prepare {
 		})};
 
 	}
-	
+
 	if ($@) {
 		my $msg = "sql_prepare: $@ (SQL = $sql)\n";
 		print STDERR $msg;
@@ -174,14 +174,14 @@ sub sql_do {
 
 	darn \@_ if $preconf -> {core_debug_sql_do};
 
-	my ($sql, @params) = @_;	
-	
+	my ($sql, @params) = @_;
+
 	my $time = time;
-	
+
 	(my $st, $affected) = sql_execute ($sql, @params);
 
-	$st -> finish;	
-	
+	$st -> finish;
+
 }
 
 ################################################################################
@@ -190,10 +190,10 @@ sub sql_execute_procedure {
 
 	my ($sql, @params) = @_;
 
-	my $time = time;	
+	my $time = time;
 
 	$sql .= ';' unless $sql =~ /;[\n\r\s]*$/;
-	
+
 	(my $st, @params) = sql_prepare ($sql, @params);
 
 	my $i = 1;
@@ -204,13 +204,13 @@ sub sql_execute_procedure {
 		} else {
 			$st -> bind_param ($i, $val);
 		}
-		$i ++; 
+		$i ++;
 	}
-	
+
 	eval {
 		$st -> execute;
 	};
-	
+
 
 	if ($@) {
 		local $SIG {__DIE__} = 'DEFAULT';
@@ -219,11 +219,11 @@ sub sql_execute_procedure {
 	  } else {
 			die $@;
 		}
-		
+
 	}
 
-	$st -> finish;	
-	
+	$st -> finish;
+
 }
 
 ################################################################################
@@ -246,9 +246,9 @@ sub sql_select_all_cnt {
 	if (@params > 0 and ref ($params [-1]) eq HASH) {
 		$options = pop @params;
 	}
-	
+
 	$sql = sql_adjust_fake_filter ($sql, $options);
-	
+
 	if ($_REQUEST {xls} && $conf -> {core_unlimit_xls} && !$_REQUEST {__limit_xls}) {
 		$sql =~ s{\bLIMIT\b.*}{}ism;
 		my $result = sql_select_all ($sql, @params, $options);
@@ -256,28 +256,28 @@ sub sql_select_all_cnt {
 		return ($result, $cnt);
 	}
 
-	my $time = time;	
+	my $time = time;
 
 	my $st = sql_execute ($sql, @params);
-	
-	my $cnt = 0;	
+
+	my $cnt = 0;
 	my @result = ();
-	
+
 	__profile_in ('sql.fetch');
 
 	while (my $i = $st -> fetchrow_hashref ()) {
-	
+
 		$cnt++;
-		
+
 		$cnt > $start or next;
 		$cnt <= $start + $portion or last;
-			
+
 		push @result, lc_hashref ($i);
-	
+
 	}
 
 	__profile_out ('sql.fetch', {label => $st -> rows});
-	
+
 	$st -> finish;
 
 	$sql =~ s{ORDER BY.*}{}ism;
@@ -292,7 +292,7 @@ sub sql_select_all_cnt {
 		$sql =~ s/SELECT.*?[\n\s]+FROM[\n\s]+/SELECT COUNT(*) FROM /ism;
 		$cnt = sql_select_scalar ($sql, @params);
 	}
-			
+
 	return (\@result, $cnt);
 
 }
@@ -313,10 +313,10 @@ sub sql_select_all {
 	if (@params > 0 and ref ($params [-1]) eq HASH) {
 		$options = pop @params;
 	}
-	
+
 	$sql = sql_adjust_fake_filter ($sql, $options);
 
-	my $time = time;	
+	my $time = time;
 
 	if ($sql =~ s{LIMIT\s+(\d+)\s*\,\s*(\d+).*}{}ism) {
 
@@ -325,47 +325,47 @@ sub sql_select_all {
 
 		($start, $portion) = (0, $start) unless ($portion);
 		my $st = sql_execute ($sql, @params);
-		my $cnt = 0;	
- 	
+		my $cnt = 0;
+
 		__profile_in ('sql.fetch');
 
 		while (my $r = $st -> fetchrow_hashref) {
-	
+
 			$cnt++;
-		
+
 			$cnt > $start or next;
 			$cnt <= $start + $portion or last;
-			
+
 			push @temp_result, $r;
-	
+
 		}
-		
+
 		__profile_out ('sql.fetch', {label => $st -> rows});
 
 		$result = \@temp_result;
-	
+
 		$st -> finish;
 	}
 	else {
-	
+
 		my $st = sql_execute ($sql, @params);
 
 		return $st if $options -> {no_buffering};
 
 		__profile_in ('sql.fetch');
 
-		$result = $st -> fetchall_arrayref ({});	
+		$result = $st -> fetchall_arrayref ({});
 
 		__profile_out ('sql.fetch', {label => 0 + @$result});
 
 		$st -> finish;
 
         }
-	
+
 	foreach my $i (@$result) {
 		lc_hashref ($i);
 	}
-	
+
 	return $result;
 
 }
@@ -380,23 +380,23 @@ sub sql_select_all_hash {
 	if (@params > 0 and ref ($params [-1]) eq HASH) {
 		$options = pop @params;
 	}
-	
+
 	$sql = sql_adjust_fake_filter ($sql, $options);
 
 	my $result = {};
-	my $time = time;	
+	my $time = time;
 
 	my $st = sql_execute ($sql, @params);
 
 	__profile_in ('sql.fetch');
 
 	while (my $r = $st -> fetchrow_hashref) {
-		lc_hashref ($r);		                       	
+		lc_hashref ($r);
 		$result -> {$r -> {id}} = $r;
 	}
 
 	__profile_out ('sql.fetch', {label => $st -> rows});
-	
+
 	$st -> finish;
 
 	return $result;
@@ -416,31 +416,31 @@ sub sql_select_col {
 		$sql =~ s/\bLIMIT\s+(\d+)\s*$/LIMIT 0,$1/igsm;
 	}
 
-	my $time = time;	
+	my $time = time;
 
 	if ($sql =~ s{LIMIT\s+(\d+)\s*\,\s*(\d+).*}{}ism) {
 
 		my ($start, $portion) = ($1, $2);
 
 		($start, $portion) = (0, $start) unless ($portion);
-	
+
 		my $st = sql_execute ($sql, @params);
 
-		my $cnt = 0;	
- 	
+		my $cnt = 0;
+
 		__profile_in ('sql.fetch');
 
 		while (my @r = $st -> fetchrow_array ()) {
-	
+
 			$cnt++;
-		
+
 			$cnt > $start or next;
 			$cnt <= $start + $portion or last;
-			
+
 			push @result, @r;
-	
+
 		}
-	
+
 		__profile_out ('sql.fetch', {label => $st -> rows});
 
 		$st -> finish;
@@ -460,7 +460,7 @@ sub sql_select_col {
 		$st -> finish;
 
 	}
-	
+
 	return @result;
 
 }
@@ -490,12 +490,12 @@ sub sql_select_hash {
 	my ($sql_or_table_name, @params) = @_;
 
 	$sql_or_table_name =~ s/\bLIMIT\b.*//igsm;
-	
+
 	if ($sql_or_table_name !~ /^\s*SELECT/i) {
-	
+
 		my $id = $_REQUEST {id};
-		my $field = 'id'; 
-		
+		my $field = 'id';
+
 		if (@params) {
 			if (ref $params [0] eq HASH) {
 				($field, $id) = each %{$params [0]};
@@ -503,24 +503,24 @@ sub sql_select_hash {
 				$id = $params [0];
 			}
 		}
-	
+
 		@params = ({}) if (@params == 0);
-		
+
 		my $sql_or_table_name_safe = sql_table_name ($sql_or_table_name);
-		
+
 		$_REQUEST {__the_table} = $sql_or_table_name;
 
 		return sql_select_hash ("SELECT * FROM $sql_or_table_name_safe WHERE $field = ?", $id);
-		
-	}	
-	
-	if (!$_REQUEST {__the_table} && $sql_or_table_name =~ /\s+FROM\s+(\w+)/sm) {
-	
-		$_REQUEST {__the_table} = $1;
-	
+
 	}
 
-	my $time = time;	
+	if (!$_REQUEST {__the_table} && $sql_or_table_name =~ /\s+FROM\s+(\w+)/sm) {
+
+		$_REQUEST {__the_table} = $1;
+
+	}
+
+	my $time = time;
 
 	my $st = sql_execute ($sql_or_table_name, @params);
 
@@ -530,8 +530,8 @@ sub sql_select_hash {
 
 	__profile_out ('sql.fetch', {label => $st -> rows});
 
-	$st -> finish;		
-	
+	$st -> finish;
+
 	return lc_hashref ($result);
 
 }
@@ -544,7 +544,7 @@ sub sql_select_array {
 
 	$sql =~ s/\bLIMIT\s+\d+\s*$//igsm;
 
-	my $time = time;	
+	my $time = time;
 
 	my $st = sql_execute ($sql, @params);
 
@@ -555,7 +555,7 @@ sub sql_select_array {
 	__profile_out ('sql.fetch', {label => $st -> rows});
 
 	$st -> finish;
-	
+
 	return wantarray ? @result : $result [0];
 
 }
@@ -572,37 +572,37 @@ sub sql_select_scalar {
 		$sql =~ s/\bLIMIT\s+(\d+)\s*$/LIMIT 0,$1/igsm;
 	}
 
-	my $time = time;	
+	my $time = time;
 
 	if ($sql =~ s{LIMIT\s+(\d+)\s*\,\s*(\d+).*}{}ism) {
 
 		my ($start, $portion) = ($1, $2);
 
 		($start, $portion) = (0, $start) unless ($portion);
-	
+
 		my $st = sql_execute ($sql, @params);
 
-		my $cnt = 0;	
-	
+		my $cnt = 0;
+
 		__profile_in ('sql.fetch');
 
 		while (my @r = $st -> fetchrow_array ()) {
-	
+
 			$cnt++;
-		
+
 			$cnt > $start or next;
 			$cnt <= $start + $portion or last;
-			
+
 			push @result, @r;
 			last;
-	
+
 		}
-	
+
 		__profile_out ('sql.fetch', {label => $st -> rows});
 
 		$st -> finish;
 
-	} 
+	}
 	else {
 
 		my $st = sql_execute ($sql, @params);
@@ -616,7 +616,7 @@ sub sql_select_scalar {
 		$st -> finish;
 
 	}
-	
+
 	return $result [0];
 
 }
@@ -624,9 +624,9 @@ sub sql_select_scalar {
 ################################################################################
 
 sub sql_select_path {
-	
+
 	my ($table_name, $id, $options) = @_;
-	
+
 	$options -> {name}     ||= 'name';
 	$options -> {type}     ||= $table_name;
 	$options -> {id_param} ||= 'id';
@@ -636,21 +636,21 @@ sub sql_select_path {
 	my @path = ();
 
 	sql_select_loop (
-		
+
 		"SELECT id, parent, $options->{name} AS name FROM $table_name START WITH id = ? CONNECT BY PRIOR parent = id",
-		
+
 		sub { foreach (qw(type id_param cgi_tail)) { $i -> {$_} = $options -> {$_}}; push @path, $i },
-		
+
 		$id,
-		
+
 	);
-	
+
 	if ($options -> {root}) {
 		push @path, {
-			id => 0, 
-			parent => 0, 
-			name => $options -> {root}, 
-			type => $options -> {type}, 
+			id => 0,
+			parent => 0,
+			name => $options -> {root},
+			type => $options -> {type},
 			id_param => $options -> {id_param},
 			cgi_tail => $options -> {cgi_tail},
 		};
@@ -665,9 +665,9 @@ sub sql_select_path {
 sub sql_select_subtree {
 
 	my ($table_name, $id, $options) = @_;
-	
+
 	return sql_select_col ("SELECT id FROM $table_name START WITH id IN ($id) CONNECT BY PRIOR id = parent");
-	
+
 }
 
 ################################################################################
@@ -691,25 +691,25 @@ sub sql_seq_name {
 	my ($table_name) = @_;
 
 	my $table_name_safe = sql_table_name ($table_name);
-	
+
 	my $triggers = sql_select_all (q {
-	
-		SELECT 
-			trigger_body 
-		FROM 
-			user_triggers 
-		WHERE 
-			table_name = ? 
+
+		SELECT
+			trigger_body
+		FROM
+			user_triggers
+		WHERE
+			table_name = ?
 			AND triggering_event like '%INSERT%'
-			
+
 	}, uc_table_name ($table_name));
-	
+
 	foreach my $i (@$triggers) {
-	
+
 		$i -> {trigger_body} =~ /(\S+)\.nextval/ism and return $1;
-	
+
 	}
-	
+
 	die "No sequence found for $table_name\n";
 
 }
@@ -723,17 +723,17 @@ sub sql_seq_name_nextval {
 	my $table_name_safe = sql_table_name ($table_name);
 
 	my $seq_name = $_SEQUENCE_NAMES -> {$table_name} ||= sql_seq_name ($table_name);
-		
+
 	my $nextval = sql_select_scalar ("SELECT $seq_name.nextval FROM DUAL");
-		
+
 	while (1) {
 
 		my $max = sql_select_scalar ("SELECT MAX(id) FROM $table_name_safe");
-		
+
 		last if $nextval > $max;
-		
+
 		$nextval = sql_increment_sequence ($seq_name, $max + 1 - $nextval);
-	
+
 	}
 
 	return ($seq_name, $nextval);
@@ -745,16 +745,16 @@ sub sql_seq_name_nextval {
 sub sql_do_insert {
 
 	my ($table_name, $pairs) = @_;
-		
+
 	my $fields = '';
 	my $args   = '';
 	my @params = ();
 	my $table_name_safe = sql_table_name ($table_name);
 
 	$pairs -> {fake} = $_REQUEST {sid} unless exists $pairs -> {fake};
-	
+
 	if (is_recyclable ($table_name)) {
-	
+
 		assert_fake_key ($table_name);
 
 		### all orphan records are now mine
@@ -762,7 +762,7 @@ sub sql_do_insert {
 		sql_do (<<EOS, $_REQUEST {sid});
 			UPDATE
 				$table_name_safe
-			SET	
+			SET
 				$table_name_safe.fake = ?
 			WHERE
 				$table_name_safe.fake > 0
@@ -773,40 +773,40 @@ EOS
 		### get my least fake id (maybe ex-orphan, maybe not)
 
 		$__last_insert_id = sql_select_scalar ("SELECT id FROM $table_name_safe WHERE fake = ? ORDER BY id LIMIT 1", $_REQUEST {sid});
-		
+
 		if ($__last_insert_id) {
 			sql_do ("DELETE FROM $table_name_safe WHERE id = ?", $__last_insert_id);
 			$pairs -> {id} = $__last_insert_id;
 		}
 
 	}
-	
+
 	my ($seq_name, $nextval) = sql_seq_name_nextval ($table_name);
 
 	if ($pairs -> {id}) {
-		
+
 		if ($pairs -> {id} > $nextval) {
-		
+
 			my $step = $pairs -> {id} - $nextval;
 
 			sql_increment_sequence ($seq_name, $pairs -> {id} - $nextval);
 
 		}
-	
+
 	}
 	else {
-		
+
 		$pairs -> {id} = $nextval;
-		
+
 	}
-	
-	foreach my $field (keys %$pairs) { 
-	
+
+	foreach my $field (keys %$pairs) {
+
 		if (@params) {
 			$fields .= ',';
 			$args   .= ',';
 		}
-			
+
 		$fields .= sql_field_name ($field);
 
 		$args   .= '?';
@@ -815,19 +815,19 @@ EOS
 			push @params, $DB_MODEL->{tables}->{$table_name}->{columns}->{$field}->{COLUMN_DEF};
 		}
 		else {
-			push @params, $pairs -> {$field};	
+			push @params, $pairs -> {$field};
 		}
- 		
+
 	}
 
 	my $time = time;
-	
+
 	if ($pairs -> {id}) {
-	
+
 		my $sql = "INSERT INTO $table_name_safe ($fields) VALUES ($args)";
 
 		sql_do ($sql, @params);
-	
+
 		return $pairs -> {id};
 
 	}
@@ -837,14 +837,14 @@ EOS
 
 		my $st = $db -> prepare ($sql);
 
-		my $i = 1; 
+		my $i = 1;
 		$st -> bind_param ($i++, $_) foreach (@params);
 
-		my $id;		
+		my $id;
 		$st -> bind_param_inout ($i, \$id, 20);
 
 		$st -> execute;
-		$st -> finish;	
+		$st -> finish;
 
 		return $id;
 
@@ -857,35 +857,35 @@ EOS
 sub sql_do_delete {
 
 	my ($table_name, $options) = @_;
-	
+
 	if (ref $options -> {file_path_columns} eq ARRAY) {
-		
+
 		map {sql_delete_file ({table => $table_name, path_column => $_})} @{$options -> {file_path_columns}}
-		
+
 	}
-	
-	our %_OLD_REQUEST = %_REQUEST;	
+
+	our %_OLD_REQUEST = %_REQUEST;
 	eval {
 		my $item = sql_select_hash ($table_name);
 		foreach my $key (keys %$item) {
 			$_OLD_REQUEST {'_' . $key} = $item -> {$key};
 		}
 	};
-	
+
 	my $table_name_safe = sql_table_name ($table_name);
 
 	sql_do ("DELETE FROM $table_name_safe WHERE id = ?", $_REQUEST{id});
-	
+
 	delete $_REQUEST{id};
-	
+
 }
 
 ################################################################################
 
 sub sql_delete_file {
 
-	my ($options) = @_;	
-	
+	my ($options) = @_;
+
 	if ($options -> {path_column}) {
 		$options -> {file_path_columns} = [$options -> {path_column}];
 	}
@@ -904,25 +904,25 @@ sub sql_delete_file {
 sub sql_download_file {
 
 	my ($options) = @_;
-	
+
 	$_REQUEST {id} ||= $_PAGE -> {id};
-	
+
 	my $item = sql_select_hash ("SELECT * FROM $$options{table} WHERE id = ?", $_REQUEST {id});
 	$options -> {size} = $item -> {$options -> {size_column}};
 	$options -> {path} = $item -> {$options -> {path_column}};
 	$options -> {type} = $item -> {$options -> {type_column}};
-	$options -> {file_name} = $item -> {$options -> {file_name_column}};	
-	
+	$options -> {file_name} = $item -> {$options -> {file_name_column}};
+
 	if ($options -> {body_column}) {
 
 		my $time = time;
-		
+
 		my $sql = "SELECT $options->{body_column} FROM $options->{table} WHERE id = ?";
-		
+
 		__profile_in ('sql.prepare', {label => $sql});
 
 		my $st = $db -> prepare ($sql, {ora_auto_lob => 0});
-		
+
 		__profile_out ('sql.prepare', {label => $sql});
 
 		__profile_in ('sql.execute', {label => "$sql $_REQUEST{id}"});
@@ -937,7 +937,7 @@ sub sql_download_file {
 
 		my $chunk_size = 1034;
 		my $offset = 1 + download_file_header (@_);
-		
+
 		while (my $data = $db -> ora_lob_read ($lob_locator, $offset, $chunk_size)) {
 		      $r -> print ($data);
 		      $offset += $chunk_size;
@@ -965,14 +965,14 @@ sub sql_store_file {
 	$st -> execute ($options -> {id});
 	(my $lob_locator) = $st -> fetchrow_array ();
 	$st -> finish ();
-	
+
 	$db -> ora_lob_trim ($lob_locator, 0);
 
-	$options -> {chunk_size} ||= 4096; 
-	my $buffer = '';		
-		
+	$options -> {chunk_size} ||= 4096;
+	my $buffer = '';
+
 	open F, $options -> {real_path} or die "Can't open $options->{real_path}: $!\n";
-		
+
 	binmode F;
 
 	while (read (F, $buffer, $options -> {chunk_size})) {
@@ -994,50 +994,50 @@ sub sql_store_file {
 ################################################################################
 
 sub sql_upload_file {
-	
+
 	my ($options) = @_;
-	
+
 	$options -> {id} ||= $_REQUEST {id};
 
 	my $uploaded = upload_file ($options) or return;
-	
+
 	$options -> {body_column} or sql_delete_file ($options);
-						
+
 	if ($options -> {body_column}) {
-	
+
 		$options -> {real_path} = $uploaded -> {real_path};
-		
+
 		sql_store_file ($options);
-	
+
 		unlink $uploaded -> {real_path};
 
 		delete $uploaded -> {real_path};
 
 	}
-	
+
 	my (@fields, @params) = ();
-	
-	foreach my $field (qw(file_name size type path)) {	
+
+	foreach my $field (qw(file_name size type path)) {
 		my $column_name = $options -> {$field . '_column'} or next;
 		push @fields, "$column_name = ?";
 		push @params, $uploaded -> {$field};
 	}
-	
+
 	foreach my $field (keys (%{$options -> {add_columns}})) {
 		push @fields, "$field = ?";
 		push @params, $options -> {add_columns} -> {$field};
 	}
 
 	if (@fields) {
-	
+
 		my $tail = join ', ', @fields;
 
 		sql_do ("UPDATE $$options{table} SET $tail WHERE id = ?", @params, $options -> {id});
-	
+
 	}
-	
+
 	return $uploaded;
-	
+
 }
 
 ################################################################################
@@ -1052,13 +1052,13 @@ sub keep_alive {
 sub sql_select_loop {
 
 	my ($sql, $coderef, @params) = @_;
-	
+
 	my $time = time;
 
 	my $st = sql_execute ($sql, @params);
-	
+
 	local $i;
-	
+
 	__profile_in ('sql.fetch');
 
 	while ($i = $st -> fetchrow_hashref) {
@@ -1067,7 +1067,7 @@ sub sql_select_loop {
 	}
 
 	__profile_out ('sql.fetch', {label => $st -> rows});
-	
+
 	$st -> finish ();
 
 }
@@ -1127,7 +1127,7 @@ sub sql_mangled_name {
 sub prepare {
 
 	my ($self, $sql) = @_;
-	
+
 	return $self -> {db} -> prepare ($sql);
 
 }
@@ -1145,7 +1145,7 @@ sub sql_table_name {
 sub uc_table_name {
 
 	my ($table) = @_;
-	
+
 	return $table =~ /^_/ ? $table : uc $table;
 
 }
@@ -1155,18 +1155,18 @@ sub uc_table_name {
 sub sql_do_update {
 
 	my ($table, $data, $id) = @_;
-	
+
 	$id ||= ((delete $data -> {id}) || $_REQUEST {id}) or die 'Wrong argument for sql_do_update: ' . Dumper (\@_);
-	
+
 	$data -> {fake} //= 0;
-	
+
 	my (@q, @p) = ();
-	
-	while (my ($k, $v) = each %$data) {	
+
+	while (my ($k, $v) = each %$data) {
 		push @q, $db -> quote_identifier (uc $k) . " = ?";
-		push @p, $v;	
+		push @p, $v;
 	}
-	
+
 	sql_do ("UPDATE " . $db -> quote_identifier (uc_table_name ($table)) . " SET " . (join ', ', @q) . " WHERE id = ?", @p, $id);
 
 }
@@ -1176,9 +1176,9 @@ sub sql_do_update {
 sub get_keys {
 
 	my ($self, $table) = @_;
-	
+
 	require_wish 'table_keys';
-	
+
 	wish_to_adjust_options_for_table_keys (my $options = {table => $table});
 
 	my %names = map {sql_mangled_name ($_) => $_} (map {"${table}_$_"} keys %{$DB_MODEL -> {tables} -> {$table} -> {keys}});
@@ -1196,11 +1196,11 @@ sub sql_field_name {'"'. uc $_[0] . '"'}
 sub sql_do_upsert {
 
 	my ($table, $data) = @_;
-	
+
 	my $ref = ref $data;
-	
+
 	$ref eq HASH or $ref eq ARRAY or die "wrong 2nd argument"; # $data is either a single record or an array of records
-	
+
 	return if $ref eq ARRAY and !@$data;                       # nothing to do with an empty array
 
 	my $def = $DB_MODEL -> {tables} -> {$table} or die "Can't find $table definition in model\n";
@@ -1212,15 +1212,15 @@ sub sql_do_upsert {
 	@uniq > 0 or die "$table definition have no partially unique keys\n";
 
 	@uniq < 2 or die "$table definition have more than one partially unique key\n";
-	
+
 	my ($uniq) = @uniq;
-	
+
 	$uniq =~ s{\!\s*$}{};
-	
-	my %uniq_fields = map {$_ => 1} split /\W/, $uniq [0];
-	
+
+	my %uniq_fields = map {$_ => 1} split /\W+/, $uniq [0];
+
 	my @list = $ref eq ARRAY ? @$data : ($data);
-	
+
 	foreach my $i (@list) {
 
 		exists $i -> {id} and die "sql_do_upsert called with id defined\n";
@@ -1230,9 +1230,9 @@ sub sql_do_upsert {
 	}
 
 	my ($select, $on, $set, $insert, $values, @params) = ('', '', '');
-	
+
 	while (my ($k, $v) = each %{$list [0]}) {
-	
+
 		my $f = sql_field_name ($k);
 
 		$select .= "? $f,";
@@ -1242,9 +1242,9 @@ sub sql_do_upsert {
 		push @params, $ref eq HASH ? $v : [map {$_ -> {$k}} @$data];
 
 		if ($uniq_fields {$k}) {
-		
+
 			$on  .= qq { AND "_old".$f="_new".$f};
-		
+
 		}
 		else {
 
@@ -1253,11 +1253,11 @@ sub sql_do_upsert {
 		}
 
 	}
-	
+
 	chop $select;
 	chop $set;
 	chop $insert;
-	chop $values;	
+	chop $values;
 
 	my $sql = qq {
 		MERGE INTO $table "_old"
@@ -1268,32 +1268,32 @@ sub sql_do_upsert {
 	};
 
 	if ($ref eq HASH) {
-	
+
 		sql_do ($sql, @params);
-		
+
 		my $lookup = "SELECT id FROM $table WHERE fake = 0";
-		
+
 		@params = ();
-		
+
 		foreach my $f (keys %uniq_fields) {
-		
+
 			$lookup .= ' AND ';
 			$lookup .= sql_field_name ($f);
 			$lookup .= '=?';
-		
+
 			push @params, $list [0] -> {$f};
-		
+
 		}
 
 		return ($data -> {id} = sql_select_scalar ($lookup, @params));
 
 	}
 	else {
-	
+
 		my $st = $db -> prepare ($sql);
-	
+
 		my @tuple_status;
-		
+
 		$st -> execute_array ({ArrayTupleStatus => \@tuple_status}, @params);
 
 	}
