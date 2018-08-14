@@ -36,7 +36,9 @@ sub check_constants {
 	$| = 1;
 
 	$Data::Dumper::Sortkeys = 1;
-
+	$Data::Dumper::Useperl = 1;
+	*Data::Dumper::qquote = sub {qq ["${\(shift)}"]};
+    
 	$SIG {__DIE__} = \&Carp::confess;
 
 	our %INC_FRESH = ();
