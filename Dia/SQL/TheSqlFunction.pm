@@ -1090,14 +1090,14 @@ sub sql {
 
 				$st -> finish;
 
-				@result = ($records, $cnt, $limit -> [1]);
+				@result = ($records, $cnt, $limit -> [1] + 0);
 			
 			}
 			else {
 		
 				$sql .= "\nLIMIT\n " . (join ', ', @$limit);
 
-				@result = (sql_select_all_cnt ($sql, @params), $limit -> [1]);
+				@result = (sql_select_all_cnt ($sql, @params), $limit -> [1] + 0);
 
 				$records = $result [0];
 	
