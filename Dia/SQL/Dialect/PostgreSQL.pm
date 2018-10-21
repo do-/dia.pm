@@ -902,9 +902,13 @@ sub sql_do_upsert {
 		my $st = $db -> prepare ($sql);
 
 		my @tuple_status;
-
-		$st -> execute_array ({ArrayTupleStatus => \@tuple_status}, @params);
-
+		eval {
+			$st -> execute_array ({ArrayTupleStatus => \@tuple_status}, @params);
+		};
+		if ($@) {
+			darn \@tuple_status;
+			croak $@;
+		}
 	}
 
 }

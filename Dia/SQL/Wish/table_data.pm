@@ -121,7 +121,16 @@ sub wish_to_actually_create_table_data {
 
 	my @tuple_status;
 
-	$sth -> execute_array ({ArrayTupleStatus => \@tuple_status}, @prms);
+	eval {
+
+		$sth -> execute_array ({ArrayTupleStatus => \@tuple_status}, @prms);
+
+	};
+
+	if ($@) {
+		darn \@tuple_status;
+		croak $@;
+	}
 
 	sql_check_seq ($options -> {table});
 
