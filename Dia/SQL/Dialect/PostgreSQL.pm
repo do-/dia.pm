@@ -317,7 +317,7 @@ sub sql_select_hash {
 
 	$sql =~ s{LIMIT\s+(\d+)\s*\,\s*(\d+).*}{LIMIT $2 OFFSET $1}ism;
 
-	if ($sql_or_table_name !~ /^\s*SELECT/i) {
+	if ($sql_or_table_name !~ /^\s*(SELECT|WITH)\b/i) {
 
 		my $id = $_REQUEST {id};
 
