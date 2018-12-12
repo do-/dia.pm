@@ -31,10 +31,10 @@ sub vld_date {
 		$year += $century;
 	}	
 	elsif ($year < 1000) {
-		die "#${name}#:Некорректно задан год\n";
+		die "#${name}#:РќРµРєРѕСЂСЂРµРєС‚РЅРѕ Р·Р°РґР°РЅ РіРѕРґ\n";
 	}
 	
-	Date::Calc::check_date ($year, $month, $day) or die "#${name}#:Некорректная дата\n";
+	Date::Calc::check_date ($year, $month, $day) or die "#${name}#:РќРµРєРѕСЂСЂРµРєС‚РЅР°СЏ РґР°С‚Р°\n";
 
 	$_REQUEST {$name} = sprintf ('%04d-%02d-%02d', $year, $month, $day);
 		
@@ -57,7 +57,7 @@ sub vld_noref {
 	
 	$options -> {id} ||= $_REQUEST {id};
 	
-	$options -> {message} ||= 'На данную запись ссылается "$label". Удаление невозможно.';
+	$options -> {message} ||= 'РќР° РґР°РЅРЅСѓСЋ Р·Р°РїРёСЃСЊ СЃСЃС‹Р»Р°РµС‚СЃСЏ "$label". РЈРґР°Р»РµРЅРёРµ РЅРµРІРѕР·РјРѕР¶РЅРѕ.';
 	
 	my $label = sql_select_scalar ("SELECT $$options{data_field} FROM $table WHERE $$options{field} = ? AND fake = 0 LIMIT 1", $options -> {id});
 	
@@ -95,7 +95,7 @@ sub vld_inn_10 {
 	
 	local $SIG {__DIE__} = 'DEFAULT';
 
-	$value =~ /^\d{10}$/ or $name1 ? die "#$name1#:Код ИНН должен состоять из 10 арабских цифр" : return 'Код ИНН должен состоять из 10 арабских цифр';
+	$value =~ /^\d{10}$/ or $name1 ? die "#$name1#:РљРѕРґ РРќРќ РґРѕР»Р¶РµРЅ СЃРѕСЃС‚РѕСЏС‚СЊ РёР· 10 Р°СЂР°Р±СЃРєРёС… С†РёС„СЂ" : return 'РљРѕРґ РРќРќ РґРѕР»Р¶РµРЅ СЃРѕСЃС‚РѕСЏС‚СЊ РёР· 10 Р°СЂР°Р±СЃРєРёС… С†РёС„СЂ';
 
 	my @n = split //, $value;
 		
@@ -113,7 +113,7 @@ sub vld_inn_10 {
 	$checksum = $checksum % 11;		
 	$checksum = $checksum % 10 if $checksum > 9;
 		
-	$checksum == 0 + substr ($value, -1, 1) or $name1 ? die "#$name1#:Не сходится контрольная сумма ИНН" : return 'Не сходится контрольная сумма ИНН';
+	$checksum == 0 + substr ($value, -1, 1) or $name1 ? die "#$name1#:РќРµ СЃС…РѕРґРёС‚СЃСЏ РєРѕРЅС‚СЂРѕР»СЊРЅР°СЏ СЃСѓРјРјР° РРќРќ" : return 'РќРµ СЃС…РѕРґРёС‚СЃСЏ РєРѕРЅС‚СЂРѕР»СЊРЅР°СЏ СЃСѓРјРјР° РРќРќ';
 
 	return undef;
 
@@ -141,7 +141,7 @@ sub vld_inn_12 {
 	
 	local $SIG {__DIE__} = 'DEFAULT';
 
-	$value =~ /^\d{12}$/ or $name1 ? die "#$name1#:Код ИНН должен состоять из 12 арабских цифр" : return 'Код ИНН должен состоять из 12 арабских цифр';
+	$value =~ /^\d{12}$/ or $name1 ? die "#$name1#:РљРѕРґ РРќРќ РґРѕР»Р¶РµРЅ СЃРѕСЃС‚РѕСЏС‚СЊ РёР· 12 Р°СЂР°Р±СЃРєРёС… С†РёС„СЂ" : return 'РљРѕРґ РРќРќ РґРѕР»Р¶РµРЅ СЃРѕСЃС‚РѕСЏС‚СЊ РёР· 12 Р°СЂР°Р±СЃРєРёС… С†РёС„СЂ';
 	
 	my @n = split //, $value;
 		
@@ -161,7 +161,7 @@ sub vld_inn_12 {
 	$checksum = $checksum % 11;
 	$checksum = 0 if $checksum > 9;
 			
-	$checksum == 0 + substr ($value, -2, 1) or $name1 ? die "#$name1#:Не сходится первая контрольная сумма ИНН" : return 'Не сходится первая контрольная сумма ИНН';
+	$checksum == 0 + substr ($value, -2, 1) or $name1 ? die "#$name1#:РќРµ СЃС…РѕРґРёС‚СЃСЏ РїРµСЂРІР°СЏ РєРѕРЅС‚СЂРѕР»СЊРЅР°СЏ СЃСѓРјРјР° РРќРќ" : return 'РќРµ СЃС…РѕРґРёС‚СЃСЏ РїРµСЂРІР°СЏ РєРѕРЅС‚СЂРѕР»СЊРЅР°СЏ СЃСѓРјРјР° РРќРќ';
 		
 	$checksum =
 		$n [0]  * 3  +
@@ -180,7 +180,7 @@ sub vld_inn_12 {
 	$checksum = $checksum % 11;
 	$checksum = 0 if $checksum > 9;
 			
-	$checksum == 0 + substr ($value, -1, 1) or $name1 ? die "#$name1#:Не сходится вторая контрольная сумма ИНН" : return 'Не сходится вторая контрольная сумма ИНН';
+	$checksum == 0 + substr ($value, -1, 1) or $name1 ? die "#$name1#:РќРµ СЃС…РѕРґРёС‚СЃСЏ РІС‚РѕСЂР°СЏ РєРѕРЅС‚СЂРѕР»СЊРЅР°СЏ СЃСѓРјРјР° РРќРќ" : return 'РќРµ СЃС…РѕРґРёС‚СЃСЏ РІС‚РѕСЂР°СЏ РєРѕРЅС‚СЂРѕР»СЊРЅР°СЏ СЃСѓРјРјР° РРќРќ';
 
 	return undef;
 
@@ -211,7 +211,7 @@ sub vld_inn {
 	} elsif (length $value == 12) {
 		return vld_inn_12 ($name);
 	} else {
-		return $name1 ? die "#$name1#:ИНН должен состоять либо из 10, либо из 12 цифр" : return 'ИНН должен состоять либо из 10, либо из 12 цифр';
+		return $name1 ? die "#$name1#:РРќРќ РґРѕР»Р¶РµРЅ СЃРѕСЃС‚РѕСЏС‚СЊ Р»РёР±Рѕ РёР· 10, Р»РёР±Рѕ РёР· 12 С†РёС„СЂ" : return 'РРќРќ РґРѕР»Р¶РµРЅ СЃРѕСЃС‚РѕСЏС‚СЊ Р»РёР±Рѕ РёР· 10, Р»РёР±Рѕ РёР· 12 С†РёС„СЂ';
 	}
 
 }
@@ -231,7 +231,7 @@ sub vld_okpo {
 	
 	local $SIG {__DIE__} = 'DEFAULT';
 
-	$_REQUEST {$name} =~ /^\d{8}$/ or die "#$name#:Код ОКПО должен состоять из 8 арабских цифр";
+	$_REQUEST {$name} =~ /^\d{8}$/ or die "#$name#:РљРѕРґ РћРљРџРћ РґРѕР»Р¶РµРЅ СЃРѕСЃС‚РѕСЏС‚СЊ РёР· 8 Р°СЂР°Р±СЃРєРёС… С†РёС„СЂ";
 	
 	my @n = split //, $_REQUEST {$name};
 		
@@ -259,10 +259,10 @@ sub vld_okpo {
 	$checksum_2 = 0 if $checksum_2 == 10;
 	
 	if ($checksum_1 > 9) {
-		$checksum_2 == 0 + substr ($_REQUEST {$name}, -1, 1) or die "#$name#:Не сходится контрольная сумма ОКПО";
+		$checksum_2 == 0 + substr ($_REQUEST {$name}, -1, 1) or die "#$name#:РќРµ СЃС…РѕРґРёС‚СЃСЏ РєРѕРЅС‚СЂРѕР»СЊРЅР°СЏ СЃСѓРјРјР° РћРљРџРћ";
 	}
 	else {
-		$checksum_1 == 0 + substr ($_REQUEST {$name}, -1, 1) or die "#$name#:Не сходится контрольная сумма ОКПО";
+		$checksum_1 == 0 + substr ($_REQUEST {$name}, -1, 1) or die "#$name#:РќРµ СЃС…РѕРґРёС‚СЃСЏ РєРѕРЅС‚СЂРѕР»СЊРЅР°СЏ СЃСѓРјРјР° РћРљРџРћ";
 	}
 
 	return undef;
@@ -284,17 +284,17 @@ sub vld_ogrn {
 	
 	local $SIG {__DIE__} = 'DEFAULT';
 
-	$_REQUEST {$name} =~ /^\d+$/ or return "#$name#:Код ОГРН[ИП] должен состоять из арабских цифр";
-	$_REQUEST {$name} =~ /^[12]/    or die "#$name#:1-я цифра ОГРН[ИП] может быть только 1 (основной номер) или 2 (иной номер)";
+	$_REQUEST {$name} =~ /^\d+$/ or return "#$name#:РљРѕРґ РћР“Р Рќ[РРџ] РґРѕР»Р¶РµРЅ СЃРѕСЃС‚РѕСЏС‚СЊ РёР· Р°СЂР°Р±СЃРєРёС… С†РёС„СЂ";
+	$_REQUEST {$name} =~ /^[12]/    or die "#$name#:1-СЏ С†РёС„СЂР° РћР“Р Рќ[РРџ] РјРѕР¶РµС‚ Р±С‹С‚СЊ С‚РѕР»СЊРєРѕ 1 (РѕСЃРЅРѕРІРЅРѕР№ РЅРѕРјРµСЂ) РёР»Рё 2 (РёРЅРѕР№ РЅРѕРјРµСЂ)";
 
 	if (length $_REQUEST {$name} == 13) {
-		(substr ($_REQUEST {$name}, 0, 12) % 11) % 10 == substr ($_REQUEST {$name}, -1, 1) or return "#$name#:Не сходится контрольная сумма ОГРН";
+		(substr ($_REQUEST {$name}, 0, 12) % 11) % 10 == substr ($_REQUEST {$name}, -1, 1) or return "#$name#:РќРµ СЃС…РѕРґРёС‚СЃСЏ РєРѕРЅС‚СЂРѕР»СЊРЅР°СЏ СЃСѓРјРјР° РћР“Р Рќ";
 	}
 	elsif (length $_REQUEST {$name} == 15) {
-		(substr ($_REQUEST {$name}, 0, 14) % 13) % 10 == substr ($_REQUEST {$name}, -1, 1) or return "#$name#:Не сходится контрольная сумма ОГРНИП";
+		(substr ($_REQUEST {$name}, 0, 14) % 13) % 10 == substr ($_REQUEST {$name}, -1, 1) or return "#$name#:РќРµ СЃС…РѕРґРёС‚СЃСЏ РєРѕРЅС‚СЂРѕР»СЊРЅР°СЏ СЃСѓРјРјР° РћР“Р РќРРџ";
 	}
 	else {
-		return "#$name#:ОГРН должен состоять из 13, а ОГРНИП из 15 арабских цифр";
+		return "#$name#:РћР“Р Рќ РґРѕР»Р¶РµРЅ СЃРѕСЃС‚РѕСЏС‚СЊ РёР· 13, Р° РћР“Р РќРРџ РёР· 15 Р°СЂР°Р±СЃРєРёС… С†РёС„СЂ";
 	}
 
 	return undef;
