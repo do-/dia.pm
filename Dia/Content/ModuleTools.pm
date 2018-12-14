@@ -145,7 +145,7 @@ sub require_update_scripts {
 
 	my $shot_dir = $dir . '/_shot';
 	
-	-d $shot_dir or mkdir $shot_dir or die "Can't create $shot_dir: $!\n";
+	$preconf -> {core_keep_update_scripts} or -d $shot_dir or mkdir $shot_dir or die "Can't create $shot_dir: $!\n";
 	
 	foreach my $fn (list_of_files_in_the_directory $dir) {
 	
@@ -215,7 +215,7 @@ sub require_update_scripts {
 			
 			$fn =~ s{\.pl$}{\.$ts\.pl};
 			
-			File::Copy::move ($path, "$shot_dir/$fn");
+			$preconf -> {core_keep_update_scripts} or File::Copy::move ($path, "$shot_dir/$fn");
 
 			__profile_out ("require.scripts.update.$name"); 
 
