@@ -118,7 +118,7 @@ sub _sql_list_fields {
 
 		if (1) {
 
-			$is_group         ||= 1 if $token =~ /^(AVG|COUNT|GROUP_CONCAT|MAX|MIN|STDEV|SUM)$/;
+			$is_group         ||= 1 if $token =~ /^(AVG|COUNT|GROUP_CONCAT|MAX|MIN|STDEV|SUM|STRING_AGG)$/;
 			$has_placeholder ||= 1 if $token eq '?';
 			$buffer    .= $token;            next;
 
