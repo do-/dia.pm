@@ -30,6 +30,12 @@ sub wish_to_actually_create_table_triggers {
 		
 	foreach my $i (@$items) {
 	
+		$i -> {body} = qq {
+			BEGIN
+			$i->{body}
+			END;
+		} if $i -> {body} !~ /^\s*DECLARE/gism;
+
 		my $events = join ' OR ', @{$i -> {events}};
 	
 		foreach my $sql (
@@ -38,9 +44,7 @@ sub wish_to_actually_create_table_triggers {
 			
 				CREATE OR REPLACE FUNCTION $i->{global_name}() RETURNS trigger AS \$$i->{global_name}\$
 
-				    BEGIN
 					$i->{body}
-				    END;
 
 				\$$i->{global_name}\$ LANGUAGE plpgsql;
 				
