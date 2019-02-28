@@ -276,27 +276,36 @@ sub vld_okpo {
 sub vld_ogrn {
 
 	my ($name, $nullable) = @_;
-	
-	$name = "_" . $name;
-	
-	if (!$_REQUEST {$name} && $nullable) {
-		delete $_REQUEST {$name};
+
+	my $name1;
+	my $value;
+	if ($name =~ /\D/) {
+		$name1 = '_' . $name;
+		$value = $_REQUEST {$name1};
+	} else {
+		$value = $name;
+	}
+
+	if (!$value && $nullable) {
+		delete $_REQUEST {$name1} if ($name1);
 		return undef;
 	}
-	
+
 	local $SIG {__DIE__} = 'DEFAULT';
 
-	$_REQUEST {$name} =~ /^\d+$/ or return "#$name#:Код ОГРН[ИП] должен состоять из арабских цифр";
-	$_REQUEST {$name} =~ /^[12]/    or die "#$name#:1-я цифра ОГРН[ИП] может быть только 1 (основной номер) или 2 (иной номер)";
+	$value =~ /^\d+$/
+		or ($name1 ? die "#$name1#:Код ОГРН[ИП] должен состоять из арабских цифр" : return "Код ОГРН[ИП] должен состоять из арабских цифр");
 
-	if (length $_REQUEST {$name} == 13) {
-		(substr ($_REQUEST {$name}, 0, 12) % 11) % 10 == substr ($_REQUEST {$name}, -1, 1) or return "#$name#:Не сходится контрольная сумма ОГРН";
+	if (length $value == 13) {
+		(substr ($value, 0, 12) % 11) % 10 == substr ($value, -1, 1)
+			or ($name1 ? die "#$name1#:Не сходится контрольная сумма ОГРН" : return "Не сходится контрольная сумма ОГРН");
 	}
-	elsif (length $_REQUEST {$name} == 15) {
-		(substr ($_REQUEST {$name}, 0, 14) % 13) % 10 == substr ($_REQUEST {$name}, -1, 1) or return "#$name#:Не сходится контрольная сумма ОГРНИП";
+	elsif (length $value == 15) {
+		(substr ($value, 0, 14) % 13) % 10 == substr ($value, -1, 1)
+			or ($name1 ? die "#$name1#:Не сходится контрольная сумма ОГРНИП" : return "Не сходится контрольная сумма ОГРНИП");
 	}
 	else {
-		return "#$name#:ОГРН должен состоять из 13, а ОГРНИП из 15 арабских цифр";
+		$name1 ? die "#$name1#:ОГРН должен состоять из 13, а ОГРНИП из 15 арабских цифр" : return "ОГРН должен состоять из 13, а ОГРНИП из 15 арабских цифр";
 	}
 
 	return undef;
