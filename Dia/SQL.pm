@@ -946,7 +946,7 @@ sub assert {
 	
 	my $tables = sql_assert_default_columns (Storable::dclone ($params {tables}), \%params);
 			
-	my $objects = [\my @tables, \my @views];
+	my $objects = [\my @tables, \my @views, \my @functions];
 
 	while (my ($name, $object) = each %$tables) {
 	
@@ -954,7 +954,13 @@ sub assert {
 	
 		$object -> {name} = $name;
 
-		push @{$objects -> [$object -> {sql} ? 1 : 0]}, $object;
+		push @{$objects -> [$object -> {code} ? 2 : $object -> {sql} ? 1 : 0]}, $object;
+
+	}
+
+	if (@functions > 0) {
+
+		wish (functions => \@functions, {});
 
 	}
 	
