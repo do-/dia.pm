@@ -89,7 +89,7 @@ sub send_mail {
 		}
 
 	}
-	
+
 	if (@to == 0) {	
 		$time = __log ($time, " $signature: no valid mail addresses found, returning");
 		return;	
@@ -317,7 +317,9 @@ sub encode_mail_address {
 	my ($s, $options) = @_;
 	
 	ref $s or return $s;
-	
+
+	$s -> {label} ||= $s -> {mail};
+
 	return encode_mail_header ($s -> {label}, $options -> {header_charset}) . " <$s->{mail}>";
 
 }
