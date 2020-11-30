@@ -39,7 +39,8 @@ sub _sql_list_fields {
 	my $level    = 0;
 	my $is_group = 0;
 	my $has_placeholder = 0;
-		
+	my $is_no_auto_alias = $src =~ /\bRECURSIVE\b/;
+
 	foreach my $token ("$src," =~ m((
 	
 		'.*?(?:(?:''){1,}'|(?<!['\\])'(?!')|\\'{2})
@@ -74,7 +75,7 @@ sub _sql_list_fields {
 		
 		}
 		
-		if ($token =~ /^[a-z][a-z_\d]*$/) {
+		if ($token =~ /^[a-z][a-z_\d]*$/ && !$is_no_auto_alias) {
 
 			$buffer .= $table_alias . '.' . sql_field_name ($token);   next;
 
