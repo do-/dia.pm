@@ -47,6 +47,13 @@ sub fill_in {
    	
    	}
 
+	if (my $rc = $preconf -> {auth} -> {sessions} -> {redis}) {
+
+		require Redis::Fast;
+		$rc -> {connection} = new Redis::Fast (%$rc);
+
+	}
+
    	$conf -> {__filled_in} = 1;
 
 }

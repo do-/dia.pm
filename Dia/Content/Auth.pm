@@ -80,15 +80,22 @@ sub delete_all_expired_sessions {
 
 sub get_session {
 
-	my $c = $_COOKIES {$preconf -> {auth} -> {sessions} -> {cookie} -> {name}} or return undef;
+	my $cookie_name = $preconf -> {auth} -> {sessions} -> {cookie} -> {name};
+	my $c = $_COOKIES {$cookie_name} or return undef;
+	my $cookie_value = $c -> {value};
+	if (ref $cookie_value eq 'ARRAY') {
+		$cookie_value = $cookie_value -> [0];
+	}
 
 	my $s;
 
 	if (my $mc = $preconf -> {auth} -> {sessions} -> {memcached}) {
 
-		my $s = $mc -> {connection} -> get ($c -> value);
+
+		my $s = $mc -> {connection} -> get ($cookie_value);
 
 		$_REQUEST {sid} = $s -> {id} or return undef;
+
 
 		if (
 
@@ -98,24 +105,39 @@ sub get_session {
 			
 		) {
 
-			$mc -> {connection} -> delete ($c -> value);
+			$mc -> {connection} -> delete ($cookie_value);
 			
 			return undef;
 
 		}		
 		
-		my @a = ($c -> value, $s, 5 + 60 * $preconf -> {auth} -> {sessions} -> {timeout});
+		my @a = ($cookie_name, $s, 5 + 60 * $preconf -> {auth} -> {sessions} -> {timeout});
 
 		$mc -> {connection} -> set (@a);
 
 		return $s;		
 		
 	}
+	elsif (my $rc = $preconf -> {auth} -> {sessions} -> {redis}) {
+
+		my $s = $rc -> {connection} -> get ($cookie_value);
+
+		$s = JSON::decode_json ($s);
+
+		$_REQUEST {sid} = $s -> {id} or return undef;
+
+		$rc -> {connection} -> set ($cookie_name, $s);
+		my $seconds = 5 + 60 * $preconf -> {auth} -> {sessions} -> {timeout};
+		$rc -> {connection} -> sort ("EXPIRE $cookie_name $seconds");
+
+		return $s;
+
+	}
 	elsif ($DB_MODEL -> {tables} -> {$conf -> {systables} -> {sessions}} -> {columns}) {
 
 		while (1) {
 
-			$s = sql_select_hash ("SELECT * FROM $conf->{systables}->{sessions} WHERE client_cookie = ?", $c -> value);
+			$s = sql_select_hash ("SELECT * FROM $conf->{systables}->{sessions} WHERE client_cookie = ?", $cookie_value);
 
 			$s -> {id} or return undef;
 
