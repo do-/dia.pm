@@ -122,6 +122,8 @@ sub get_session {
 
 		my $s = $rc -> {connection} -> get ($cookie_value);
 
+		$s or return undef;
+
 		$s = JSON::decode_json ($s);
 
 		$_REQUEST {sid} = $s -> {id} or return undef;
