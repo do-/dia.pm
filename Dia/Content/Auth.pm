@@ -48,7 +48,20 @@ sub start_session {
 		$r or die "Cache::Memcached::Fast::add returned: '$r' for " . Dumper (\@arg);
 	
 	}
+
+	if (my $rc = $preconf -> {auth} -> {sessions} -> {redis}) {
 	
+		my $s_json = JSON::encode_json ({
+			id      => $_REQUEST {sid},
+			id_user => $id_user,
+		});
+
+		my $seconds = 5 + 60 * $preconf -> {auth} -> {sessions} -> {timeout};
+
+		$rc -> {connection} -> setex ($client_cookie, $seconds, $s_json);
+
+	}
+
 	my $c = $preconf -> {auth} -> {sessions} -> {cookie};
 
 	set_cookie (
@@ -120,17 +133,13 @@ sub get_session {
 	}
 	elsif (my $rc = $preconf -> {auth} -> {sessions} -> {redis}) {
 
-		my $s = $rc -> {connection} -> get ($cookie_value);
+		my $s_json = $rc -> {connection} -> get ($cookie_value);
 
-		$s or return undef;
+		$s_json or return undef;
 
-		$s = JSON::decode_json ($s);
+		my $s = JSON::decode_json ($s_json);
 
 		$_REQUEST {sid} = $s -> {id} or return undef;
-
-		$rc -> {connection} -> set ($cookie_name, $s);
-		my $seconds = 5 + 60 * $preconf -> {auth} -> {sessions} -> {timeout};
-		$rc -> {connection} -> sort ("EXPIRE $cookie_name $seconds");
 
 		return $s;
 
