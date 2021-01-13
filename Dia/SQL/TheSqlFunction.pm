@@ -238,8 +238,8 @@ sub _sql_filters {
 			;
 
 		}
-		
-		$have_fake_filter = 1 if $field eq 'fake';
+
+		$have_fake_filter = 1 if $field =~ /^\s*($root\.)?fake\b/ && $field !~ /\sOR\s/si;
 
 		if (($tied or $was_array) && $field =~ /^([a-z][a-z0-9_]*)$/) {
 		
