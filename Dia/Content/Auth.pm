@@ -67,7 +67,7 @@ sub start_session {
 	set_cookie (
 		-name => $c -> {name}, 
 		-value => $client_cookie, 
-		-httponly => 1, 
+		-httponly => $preconf -> {auth} -> {sessions} -> {no_httponly} ? 0 : 1, 
 		-path => $c -> {path},
 	);
 
