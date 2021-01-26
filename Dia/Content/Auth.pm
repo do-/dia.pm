@@ -69,6 +69,8 @@ sub start_session {
 		-value => $client_cookie, 
 		-httponly => $preconf -> {auth} -> {sessions} -> {no_httponly} ? 0 : 1, 
 		-path => $c -> {path},
+		-samesite => $preconf -> {auth} -> {sessions} -> {samesite} || 'Lax',
+		-secure => $preconf -> {auth} -> {sessions} -> {secure} ? 1 : 0,
 	);
 
 }
