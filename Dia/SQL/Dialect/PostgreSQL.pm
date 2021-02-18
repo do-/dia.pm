@@ -395,6 +395,7 @@ sub sql_select_scalar {
 	my @result;
 
 	$sql =~ s{LIMIT\s+(\d+)\s*\,\s*(\d+).*}{LIMIT $2 OFFSET $1}ism;
+	$sql .= " LIMIT 1" if $sql !~ /LIMIT/mi;
 
 	my $time = time;
 
