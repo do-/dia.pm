@@ -202,7 +202,7 @@ sub sql_select_all_cnt {
 
 	$sql =~ s{ORDER BY.*}{}ism;
 	$sql =~ s/SELECT.*?[\n\s]+FROM[\n\s]+/SELECT COUNT(*) FROM /ism;
-	$sql =~ s{\bLIMIT\b.*}{}ism;
+	$sql =~ s{\bLIMIT\b.*\Z}{}im;
 	my $cnt = sql_select_scalar ($sql, @params);
 
 	return (\@result, $cnt);
