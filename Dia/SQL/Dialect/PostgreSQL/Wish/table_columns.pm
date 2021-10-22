@@ -181,7 +181,13 @@ sub wish_to_explore_existing_table_columns {
 			
 				$r -> {COLUMN_DEF} = $i -> {adsrc} . '';
 			
-				$r -> {COLUMN_DEF} =~ s{\:\:\w+$}{};
+				$r -> {COLUMN_DEF} =~ s{\:\:(\w+)$}{};
+
+				my $type = $1;
+
+				if ($type =~ /int/) {
+					$r -> {COLUMN_DEF} =~ s{^'(.+)'$}{$1};
+				}
 
 			}
 			
