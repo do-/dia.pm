@@ -235,7 +235,7 @@ sub require_scripts {
 	
 	my @dirs = grep {-d} _INC ();
 	
-	require_model_scripts (@dirs);
+	$preconf -> {no_model_update} or require_model_scripts (@dirs);
 	
 	require_update_scripts ($_) foreach (@dirs);
 		
