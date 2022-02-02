@@ -44,8 +44,14 @@ sub __profile_print_details {
 sub __profile_print_tree {
 
 	my ($old_options, $new_options) = @_;
-		
+
 	my $message = dt_iso ($new_options -> {__time}) . "\t$$\t";
+
+	if ($preconf -> {core_debug_xrq_id}) {
+
+		$message .= sprintf('%-32s ',  $new_options -> {__xrq_id});
+
+	}
 
 	$message .= '       ' x $old_options -> {__level};
 	
@@ -85,6 +91,9 @@ sub __profile_in {
 
 	$options -> {__time}  = time ();
 	$options -> {__type}  = $type;
+
+	$options -> {__xrq_id} = $preconf -> {core_debug_xrq_id}
+		&& defined $_HEADERS ? $_HEADERS -> header('X-Request-ID') : '';
 
 	push @_PROFILING_STACK, $options;
 
@@ -152,7 +161,10 @@ sub __profile_out {
 	$new_options -> {__time}     = time ();
 	
 	$new_options -> {__type}     = $type;
-		
+
+	$options -> {__xrq_id} = $preconf -> {core_debug_xrq_id}
+		&& defined $_HEADERS ? $_HEADERS -> header('X-Request-ID') : '';
+
 	@_PROFILING_STACK > 0 or warn "Profiling skewed: stack is empty\n";
 	
 	while (@_PROFILING_STACK) {
