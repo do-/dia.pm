@@ -200,9 +200,17 @@ sub sql_select_all_cnt {
 
 	$st -> finish;
 
-	$sql =~ s{ORDER BY.*}{}ism;
-	$sql =~ s/SELECT.*?[\n\s]+FROM[\n\s]+/SELECT COUNT(*) FROM /ism;
-	$sql =~ s{\bLIMIT\b.*\Z}{}im;
+	if ($_REQUEST{approx_count}) {
+		$sql =~ /SELECT.*?[\n\s]+FROM[\n\s]+(\w+)/s;
+		@params = ($1);
+		$sql = "SELECT reltuples AS approximate_row_count FROM pg_class WHERE relname = ?";
+	}
+	else {
+		$sql =~ s{(.*)ORDER BY.*}{$1}ism;
+		$sql =~ s/SELECT.*?[\n\s]+FROM[\n\s]+/SELECT COUNT(*) FROM /ism;
+		$sql =~ s{\bLIMIT\b.*\Z}{}im;
+	}
+
 	my $cnt = sql_select_scalar ($sql, @params);
 
 	return (\@result, $cnt);
