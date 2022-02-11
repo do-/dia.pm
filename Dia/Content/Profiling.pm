@@ -49,7 +49,7 @@ sub __profile_print_tree {
 
 	if ($preconf -> {core_debug_xrq_id}) {
 
-		$message .= sprintf('%-32s ',  $new_options -> {__xrq_id});
+		$message .= sprintf('%-32s ',  $ENV{HTTP_X_REQUEST_ID});
 
 	}
 
@@ -91,9 +91,6 @@ sub __profile_in {
 
 	$options -> {__time}  = time ();
 	$options -> {__type}  = $type;
-
-	$options -> {__xrq_id} = $preconf -> {core_debug_xrq_id}
-		&& defined $_HEADERS ? $_HEADERS -> header('X-Request-ID') : '';
 
 	push @_PROFILING_STACK, $options;
 
@@ -161,9 +158,6 @@ sub __profile_out {
 	$new_options -> {__time}     = time ();
 	
 	$new_options -> {__type}     = $type;
-
-	$options -> {__xrq_id} = $preconf -> {core_debug_xrq_id}
-		&& defined $_HEADERS ? $_HEADERS -> header('X-Request-ID') : '';
 
 	@_PROFILING_STACK > 0 or warn "Profiling skewed: stack is empty\n";
 	
