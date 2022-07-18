@@ -549,11 +549,15 @@ sub sql_do_insert {
 
 	exists $data -> {fake} or $data -> {fake} = $_REQUEST {sid};
 
+	my $def = $DB_MODEL -> {tables} -> {$table} or die "Can't find $table definition in model\n";
+
 	my ($fields, $args, @params) = ('', '');
 
 	while (my ($k, $v) = each %$data) {
 
 		defined $v or next;
+
+		defined $def -> {columns} -> {$k} or defined $DB_MODEL -> {default_columns} -> {$k} or next;
 
 		if (@params) {
 			$fields .= ', ';
@@ -565,6 +569,8 @@ sub sql_do_insert {
 		push @params, $v;
 
 	}
+
+	$fields or die "No known values provided to insert in $table:" . Dumper($data);
 
 	my $sql = "INSERT INTO $table ($fields) VALUES ($args)";
 
