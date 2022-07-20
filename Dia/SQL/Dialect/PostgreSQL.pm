@@ -884,6 +884,8 @@ sub sql_do_upsert {
 
 	while (my ($k, $v) = each %{$list [0]}) {
 
+		defined $def -> {columns} -> {$k} or defined $DB_MODEL -> {default_columns} -> {$k} or next;
+
 		if (@params) {
 			$fields .= ', ';
 			$args   .= ', ';
@@ -903,6 +905,8 @@ sub sql_do_upsert {
 		}
 
 	}
+
+	$fields or die "No known values provided to upsert in $table:" . Dumper($data);
 
 	my $sql = "INSERT INTO $table ($fields) VALUES ($args) ON CONFLICT ($uniq) WHERE fake = 0 DO UPDATE SET $set";
 

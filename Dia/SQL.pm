@@ -1216,6 +1216,8 @@ sub sql_field_name {$_[0]}
 sub sql_do_update {
 
 	my ($table, $data, $id) = @_;
+
+	my $def = $DB_MODEL -> {tables} -> {$table} or die "Can't find $table definition in model\n";
 	
 	$id ||= ((delete $data -> {id}) || $_REQUEST {id}) or die 'Wrong argument for sql_do_update: ' . Dumper (\@_);
 	
@@ -1224,9 +1226,15 @@ sub sql_do_update {
 	my (@q, @p) = ();
 	
 	while (my ($k, $v) = each %$data) {	
+
+		defined $def -> {columns} -> {$k} or defined $DB_MODEL -> {default_columns} -> {$k} or next;
+
 		push @q, $db -> quote_identifier ($k) . " = ?";
 		push @p, $v;	
 	}
+
+	@q or die "No known values provided to update in $table:" . Dumper($data);
+
 	
 	sql_do ("UPDATE " . $db -> quote_identifier ($table) . " SET " . (join ', ', @q) . " WHERE id = ?", @p, $id);
 
