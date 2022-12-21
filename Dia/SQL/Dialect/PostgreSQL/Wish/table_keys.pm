@@ -5,21 +5,35 @@ sub wish_to_clarify_demands_for_table_keys {
 	my ($i, $options) = @_;
 	
 	$i -> {global_name} = 'ix_' . $options -> {table} . '_' . $i -> {name};
-	
+
 	unless (ref $i -> {parts} eq ARRAY) {
-	
+
 		if ($i -> {parts} =~ /\!$/) {
-		
+
 			chop $i -> {parts};
 			
-			$i -> {part_uniq} = 1;
-		
+			$i -> {is_uniq} = 1;
+
+			$i -> {is_partial} = 1;
+
+			$i -> {where} = 'WHERE fake = 0';
+
+		}
+
+		if ($i -> {parts} =~ /^(.*?)\s+(WHERE.*)$/) {
+
+			$i -> {parts} = $1;
+
+			$i -> {is_partial} = 1;
+
+			$i -> {where} = $2;
+
 		}
 
 		$i -> {parts} = [split /\,/, $i -> {parts}];
 
 	}
-	
+
 	foreach my $part (@{$i -> {parts}}) {
 	
 		$part = lc $part;
@@ -65,7 +79,19 @@ sub wish_to_explore_existing_table_keys {
 			
 		};
 		
-		$d -> {part_uniq} = 1 if $i -> {indexdef} =~ /UNIQUE(.+)WHERE/i;
+		if ($i -> {indexdef} =~ /UNIQUE(.+)WHERE/i) {
+
+			$d -> {is_uniq} = 1;
+
+		}
+
+		if ($i -> {indexdef} =~ /WHERE \((.+?)\)$/i) {
+
+			$d -> {is_partial} = 1;
+
+			$d -> {where} = 'WHERE '.$1;
+
+		}
 
 		$options -> {_cache} -> {$i -> {tablename}} -> {$global_name} = $d;
 
@@ -85,13 +111,16 @@ sub wish_to_actually_create_table_keys {
 	
 	foreach my $i (@$items) {
 
-		my ($unique, $where) = $i -> {part_uniq} ? ('UNIQUE', 'WHERE fake = 0') : ('', '');
+		my ($unique, $where) = ('', '');
+
+		$unique = 'UNIQUE' if $i -> {is_uniq};
+
+		$where = $i -> {where} if $i -> {is_partial};
 
 		sql_do ("CREATE $concurrently $unique INDEX $i->{global_name} ON $options->{table} (@{[ join ', ', @{$i -> {parts}} ]}) $where");
 	
 	}
 
-	
 }
 
 1;
