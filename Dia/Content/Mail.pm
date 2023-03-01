@@ -21,7 +21,7 @@ sub __log {
 		$$,
 		1000 * ($now - $_[0]), 
 		$_[1]
-	;
+	unless $preconf -> {mail} -> {disable_log};
 
 	return $now;
 
