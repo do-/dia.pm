@@ -57,21 +57,45 @@ sub get_request_problem {
 	get_request (@_);
 
 	$ENV {REQUEST_METHOD} eq 'POST' or return 405;
-	
+
 	my $enctype = $r -> {Q} -> http ('Content-Type');
-	
-	$enctype eq 'application/json' or $enctype eq 'text/plain' or return (400 => 'Wrong Content-Type');
+
+	my $enctype_handlers = {
+		'application/json' => {
+			code => sub {
+				setup_json ();
+				%_REQUEST = (%_REQUEST, %{$_JSON -> decode (shift)});
+			},
+			message => 'Wrong JSON',
+		},
+		'text/plain' => {
+			code => sub {
+				setup_json ();
+				%_REQUEST = (%_REQUEST, %{$_JSON -> decode (shift)});
+			},
+			message => 'Wrong JSON',
+		},
+		'application/octet-stream' => {
+			code => sub {
+				%_REQUEST = (%_REQUEST, chunk => shift);
+			},
+			message => 'Wrong request',
+		},
+	};
+
+	grep { $enctype eq $_ } keys %$enctype_handlers
+		or return (400 => 'Wrong Content-Type');
 
 	Encode::_utf8_on ($_) foreach (values %_REQUEST);
-	
-	setup_json ();
 
 	if (my $postdata = delete $_REQUEST {POSTDATA}) {
-	
-		eval {%_REQUEST = (%_REQUEST, %{$_JSON -> decode ($postdata)})};
 
-		$@ and return (400 => 'Wrong JSON');
-		
+		my $hdl = $enctype_handlers -> {$enctype};
+
+		eval { $hdl -> {code}($postdata) };
+
+		$@ and return (400 => $hdl -> {message});
+
 	}
 
 	foreach my $k ($r -> {Q} -> http) {
