@@ -30,16 +30,16 @@ sub wish_to_clarify_demands_for_table_keys {
 
 		}
 
-		$i -> {parts} = [split /\,/, $i -> {parts}];
+		$i -> {parts} = [split /\s*\,\s*/, $i -> {parts}];
 
 	}
 
 	foreach my $part (@{$i -> {parts}}) {
 	
 		$part = lc $part;
+
+		$part =~ s{^\s+|\s+$}{}gsm;
 		
-		$part =~ s{\s}{}gsm;
-	
 		$part =~ s{(\w+)\((\d+)\)}{substring($1 from 1 for $2)};
 
 	}
