@@ -27,6 +27,7 @@ sub options_unix {
 	$options {timeout}      ||= 1;
 	$options {kill_timeout} ||= 1;
 	$options {signal}       ||= 15;
+	$options {foreground}   ||= 0;
 
 	return %options;
 
@@ -169,9 +170,13 @@ sub start {
 
 	open STDOUT, '>/dev/null' or die "Can't write to /dev/null: $!";
 
-	defined (my $pid = fork) or die "Can't fork: $!";
+	unless ($options {foreground}) {
 
-	exit if $pid;
+		defined (my $pid = fork) or die "Can't fork: $!";
+
+		exit if $pid;
+
+	}
 
 	die "Can't start a new session: $!" if setsid == -1;
 
