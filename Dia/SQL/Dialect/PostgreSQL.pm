@@ -503,11 +503,15 @@ sub sql_do_insert_all {
 
 	my ($table, $records) = @_;
 
+	my $def = $DB_MODEL -> {tables} -> {$table} or die "Can't find $table definition in model\n";
+
 	ref $records eq ARRAY or die 'Not a list: ' . Dumper ($records);
 
 	@$records > 0 or return __profile_out ('sql.sql_do_insert_array', {label => 'Nothing to do'});
 
 	my @fields = (); while (my ($k, $v) = each %{$records -> [0]}) {push @fields, $k if defined $v};
+
+	@fields = grep {defined $def -> {columns} -> {$_} or defined $DB_MODEL -> {default_columns} -> {$_}} @fields;
 
 	my $sql = "INSERT INTO $table (" . (join ', ', @fields) . ') VALUES (' . ('?,' x @fields); chop $sql; $sql .= ')';
 
