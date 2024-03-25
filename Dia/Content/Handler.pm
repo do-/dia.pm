@@ -58,7 +58,7 @@ sub get_request_problem {
 
 	$ENV {REQUEST_METHOD} eq 'POST' or return 405;
 
-	my $enctype = $r -> {Q} -> http ('Content-Type');
+	my $enctype = $r -> {Q} -> content_type();
 
 	my $enctype_handlers = {
 		'application/json' => {
