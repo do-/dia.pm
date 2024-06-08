@@ -109,7 +109,7 @@ sub wish_to_explore_existing_table_columns {
 			SELECT 
 				pg_attribute.*
 				, pg_type.typname
-				, pg_attrdef.adsrc
+				, pg_get_expr(pg_attrdef.adbin, pg_attrdef.adrelid) adsrc
 				, pg_description.description
 				, pg_class.relname
 				, CASE atttypid
